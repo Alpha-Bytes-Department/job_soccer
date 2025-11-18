@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import config from "./config";
 import socketServer from "./socket/socketServer";
 import { logger } from "./shared/logger/logger";
+import { seedSuperAdmin } from "./shared/db/seedSuperAdmin";
 
 //uncaught exception
 process.on("uncaughtException", (error) => {
@@ -13,9 +14,11 @@ process.on("uncaughtException", (error) => {
 const server = socketServer();
 async function main() {
   try {
-    //TODO:  seedSuperAdmin();
     mongoose.connect(config.database_url as string);
     logger.info(colors.green("🚀 Database connected successfully"));
+    
+    // Seed super admin on startup
+    await seedSuperAdmin();
 
     const port =
       typeof config.port === "number" ? config.port : Number(config.port);

@@ -123,8 +123,8 @@ CANDIDATE PROFILE:
   if (candidateProfile.availability) {
     prompt += `- Availability: ${candidateProfile.availability}\n`;
   }
-  if (candidateProfile.gpa) {
-    prompt += `- GPA: ${candidateProfile.gpa}\n`;
+  if (candidateProfile?.gpa) {
+    prompt += `- GPA: ${candidateProfile.gpa || "N/A"}\n`;
   }
   if (candidateProfile.educationLevel) {
     prompt += `- Education Level: ${candidateProfile.educationLevel}\n`;

@@ -5,6 +5,7 @@ import AppError from "../../errors/AppError";
 import { Types } from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import { SearchHistoryService, SearchEntityType } from "../searchHistory/searchHistory.service";
+import { AI_SCORE_RANGES, AiScoreLevel, getDateFilterRange, DateFilter } from "./job.constants";
 
 
 /**
@@ -45,8 +46,17 @@ const getAllJobs = async (query: Record<string, any>) => {
   if (query.country) queryFilter.country = query.country;
   if (query.contractType) queryFilter.contractType = query.contractType;
   if (query.position) queryFilter.position = query.position;
+  if (query.experience) queryFilter.experience = query.experience;
   if (query.creatorId) queryFilter["creator.creatorId"] = query.creatorId;
   if (query["creator.creatorRole"]) queryFilter["creator.creatorRole"] = query["creator.creatorRole"];
+
+  // Date filter - filter by when job was created
+  if (query.dateFilter && query.dateFilter !== "Any Time") {
+    const startDate = getDateFilterRange(query.dateFilter as DateFilter);
+    if (startDate) {
+      queryFilter.createdAt = { $gte: startDate };
+    }
+  }
 
   // Salary range filters
   if (query.minSalary) {
@@ -57,17 +67,30 @@ const getAllJobs = async (query: Record<string, any>) => {
   }
 
   // AI Score range filters
-  if (query.minRequiredAiScore) {
-    queryFilter.requiredAiScore = { 
-      ...queryFilter.requiredAiScore, 
-      $gte: Number(query.minRequiredAiScore) 
-    };
-  }
-  if (query.maxRequiredAiScore) {
-    queryFilter.requiredAiScore = { 
-      ...queryFilter.requiredAiScore, 
-      $lte: Number(query.maxRequiredAiScore) 
-    };
+  // Priority: Use aiScoreLevel if provided, otherwise use custom min/max
+  if (query.aiScoreLevel) {
+    const level = query.aiScoreLevel as AiScoreLevel;
+    const range = AI_SCORE_RANGES[level];
+    if (range) {
+      queryFilter.requiredAiScore = { 
+        $gte: range.min,
+        $lte: range.max
+      };
+    }
+  } else {
+    // Use custom range if aiScoreLevel is not provided
+    if (query.minRequiredAiScore) {
+      queryFilter.requiredAiScore = { 
+        ...queryFilter.requiredAiScore, 
+        $gte: Number(query.minRequiredAiScore) 
+      };
+    }
+    if (query.maxRequiredAiScore) {
+      queryFilter.requiredAiScore = { 
+        ...queryFilter.requiredAiScore, 
+        $lte: Number(query.maxRequiredAiScore) 
+      };
+    }
   }
 
   // Pagination
@@ -127,10 +150,13 @@ const getActiveJobs = async (filters: {
   location?: string;
   country?: string;
   contractType?: string;
+  experience?: string;
   minSalary?: number;
   maxSalary?: number;
+  aiScoreLevel?: AiScoreLevel;
   minRequiredAiScore?: number;
   maxRequiredAiScore?: number;
+  dateFilter?: DateFilter;
   employerRole?: string;
   page?: number;
   limit?: number;
@@ -141,10 +167,13 @@ const getActiveJobs = async (filters: {
     location,
     country,
     contractType,
+    experience,
     minSalary,
     maxSalary,
+    aiScoreLevel,
     minRequiredAiScore,
     maxRequiredAiScore,
+    dateFilter,
     employerRole,
     page = 1,
     limit = 20,
@@ -158,7 +187,16 @@ const getActiveJobs = async (filters: {
   if (location) queryFilter.location = new RegExp(location, "i");
   if (country) queryFilter.country = country;
   if (contractType) queryFilter.contractType = contractType;
+  if (experience) queryFilter.experience = experience;
   if (employerRole) queryFilter["creator.creatorRole"] = employerRole;
+
+  // Date filter - filter by when job was created
+  if (dateFilter && dateFilter !== "Any Time") {
+    const startDate = getDateFilterRange(dateFilter);
+    if (startDate) {
+      queryFilter.createdAt = { $gte: startDate };
+    }
+  }
 
   // Salary range filtering
   if (minSalary !== undefined) {
@@ -168,12 +206,24 @@ const getActiveJobs = async (filters: {
     queryFilter["salary.max"] = { $lte: maxSalary };
   }
 
-  // Required AI Score range filtering
-  if (minRequiredAiScore !== undefined) {
-    queryFilter["requiredAiScore"] = { ...queryFilter["requiredAiScore"], $gte: minRequiredAiScore };
-  }
-  if (maxRequiredAiScore !== undefined) {
-    queryFilter["requiredAiScore"] = { ...queryFilter["requiredAiScore"], $lte: maxRequiredAiScore };
+  // AI Score range filtering
+  // Priority: Use aiScoreLevel if provided, otherwise use custom min/max
+  if (aiScoreLevel) {
+    const range = AI_SCORE_RANGES[aiScoreLevel];
+    if (range) {
+      queryFilter.requiredAiScore = { 
+        $gte: range.min,
+        $lte: range.max
+      };
+    }
+  } else {
+    // Use custom range if aiScoreLevel is not provided
+    if (minRequiredAiScore !== undefined) {
+      queryFilter["requiredAiScore"] = { ...queryFilter["requiredAiScore"], $gte: minRequiredAiScore };
+    }
+    if (maxRequiredAiScore !== undefined) {
+      queryFilter["requiredAiScore"] = { ...queryFilter["requiredAiScore"], $lte: maxRequiredAiScore };
+    }
   }
 
   const skip = (page - 1) * limit;
@@ -512,6 +562,21 @@ const getJobCountsByRole = async () => {
   return result;
 };
 
+/**
+ * Get the last 4 jobs (most recent active jobs)
+ * Useful for displaying recent job postings on home page or dashboard
+ */
+const getLastFourJobs = async () => {
+  const jobs = await Job.find({ status: "active" })
+    .sort({ createdAt: -1 })
+    .limit(4)
+    .populate("creator.creatorId", "firstName lastName email profileImage role")
+    .lean()
+    .exec();
+
+  return jobs;
+};
+
 // Export all service functions
 export const JobService = {
   createJob,
@@ -529,5 +594,6 @@ export const JobService = {
   bulkUpdateStatus,
   expireOldJobs,
   getJobCountsByRole,
+  getLastFourJobs,
 };
 

@@ -22,7 +22,7 @@ const createHighSchoolCanDto = z.object({
         unit: z.enum(["cm", "m", "in", "ft"]),
     }),
     currentClub: z.string().trim().min(1, "Current club is required"),
-    category: z.string().trim().min(1, "Category is required"),
+    category: z.string().trim().min(1, "Category is required").optional(),
     position: z.enum([
         "GK",
         "Central back",
@@ -46,7 +46,7 @@ const createHighSchoolCanDto = z.object({
     foot: z.enum(["Right", "Left", "Both"]),
     league: z.string().trim().min(1, "League is required"),
     schoolName: z.string().trim().min(1, "School name is required"),
-    gpa: z.string().trim().min(1, "GPA is required"),
+    gpa: z.string().trim().min(1, "GPA is required").optional(),
     country: z.string().min(1, "Country is required"),
     // Videos will be handled separately through file upload (2 Highlights videos required)
     videos: z.array(

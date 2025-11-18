@@ -16,6 +16,7 @@ import { CandidateLicensesAndCertificationRoutes } from "../modules/candidateLic
 import { JobApplyRoutes } from "../modules/jobApply/jobApply.route";
 import { ChatRoutes } from "../modules/chat/chat.route";
 import { MessageRoutes } from "../modules/message/message.route";
+import AdminVerificationRoutes from "../modules/adminVerification/adminVerification.route";
 
 const router: Router = express.Router();
 
@@ -87,6 +88,10 @@ const apiRoutes = [
   {
     path: "/message",
     route: MessageRoutes,
+  },
+  {
+    path: "/admin-verification",
+    route: AdminVerificationRoutes,
   },
 ];
 

@@ -23,7 +23,7 @@ export enum EmployerRole {
   AGENT = "Agent",
 }
 export type TBaseUser = {
-  firstName: string;
+  firstName: string; 
   lastName: string;
   email: string;
   role: CandidateRole | EmployerRole;

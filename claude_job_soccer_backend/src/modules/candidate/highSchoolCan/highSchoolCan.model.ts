@@ -90,7 +90,7 @@ const highSchoolCanSchema = new Schema<THighSchoolCan>(
     },
     league: { type: String, required: true, trim: true },
     schoolName: { type: String, required: true, trim: true },
-    gpa: { type: String, required: true, trim: true },
+    gpa: { type: String, required: false, trim: true },
     country: {
       type: String,
       enum: countryList,

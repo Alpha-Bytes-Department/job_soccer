@@ -35,7 +35,9 @@ const createJobDto = z.object({
         message:
           "Maximum salary must be greater than or equal to minimum salary",
       }),
-    experience: z.string(),
+    experience: z.enum(["Entry Level", "Intermediate", "Mid-Level", "Mid-Senior", "Senior"], {
+      message: "Invalid experience level",
+    }),
     requirements: z
       .string()
       .min(10, "Requirements must be at least 10 characters"),
@@ -88,7 +90,9 @@ const updateJobDto = z.object({
         max: z.number().min(0).optional(),
       })
       .optional(),
-    experience: z.string().optional(),
+    experience: z.enum(["Entry Level", "Intermediate", "Mid-Level", "Mid-Senior", "Senior"], {
+      message: "Invalid experience level",
+    }).optional(),
     requirements: z.string().min(10).optional(),
     responsibilities: z.string().min(10).optional(),
     requiredSkills: z.string().min(5).optional(),
@@ -121,10 +125,15 @@ const getAllJobsDto = z.object({
     country: z.string().optional(),
     contractType: z.enum(["FullTime", "PartTime"]).optional(),
     position: z.string().optional(),
+    experience: z.enum(["Entry Level", "Intermediate", "Mid-Level", "Mid-Senior", "Senior"]).optional(),
     minSalary: z.string().optional(),
     maxSalary: z.string().optional(),
+    // AI Score filtering - can use either level (Low, Medium, Good, High) or custom range
+    aiScoreLevel: z.enum(["Low", "Medium", "Good", "High"]).optional(),
     minRequiredAiScore: z.string().optional(),
     maxRequiredAiScore: z.string().optional(),
+    // Date filtering - filter by when job was created
+    dateFilter: z.enum(["Last Week", "This Month", "Any Time"]).optional(),
     creatorRole: z.string().optional(),
     creatorId: z.string().optional(),
     status: z.enum(["active", "closed", "draft", "expired"]).optional(),

@@ -75,8 +75,9 @@ const jobSchema = new Schema<IJob>(
     },
     experience: {
       type: String,
+      enum: ["Entry Level", "Intermediate", "Mid-Level", "Mid-Senior", "Senior"],
       required: true,
-      trim: true,
+      index: true, // Filter by experience level
     },
     requirements: {
       type: String,

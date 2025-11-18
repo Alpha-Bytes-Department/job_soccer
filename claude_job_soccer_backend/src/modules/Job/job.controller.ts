@@ -313,6 +313,21 @@ const getJobCountsByRole = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+/**
+ * Get the last 4 jobs (most recent active jobs)
+ * GET /api/v1/jobs/last-four
+ */
+const getLastFourJobs = catchAsync(async (req: Request, res: Response) => {
+  const result = await JobService.getLastFourJobs();
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Last 4 jobs retrieved successfully",
+    data: result,
+  });
+});
+
 export const JobController = {
   createJob,
   getAllJobs,
@@ -331,4 +346,5 @@ export const JobController = {
   bulkUpdateStatus,
   expireOldJobs,
   getJobCountsByRole,
+  getLastFourJobs,
 };

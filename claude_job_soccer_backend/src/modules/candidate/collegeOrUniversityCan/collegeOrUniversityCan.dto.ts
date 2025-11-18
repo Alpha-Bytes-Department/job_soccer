@@ -48,7 +48,7 @@ const createCollegeOrUniversityCanDto = z.object({
     league: z.string().trim().min(1, "League is required"),
     schoolName: z.string().trim().min(1, "School name is required"),
     diploma: z.string().trim().min(1, "Diploma is required"),
-    gpa: z.string().trim().min(1, "GPA is required"),
+    gpa: z.string().trim().min(1, "GPA is required").optional(),
     country: z.string().min(1, "Country is required"),
     // Videos will be handled separately through file upload (2 Highlights videos required)
     videos: z.array(

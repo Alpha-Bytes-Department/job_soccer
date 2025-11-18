@@ -62,6 +62,14 @@ router.get("/counts-by-role", JobController.getJobCountsByRole);
 
 /**
  * GET /api/v1/job
+ * /last-four
+ * Get the last 4 most recent active jobs
+ * Returns: Array of 4 most recent job objects
+ */
+router.get("/last-four", JobController.getLastFourJobs);
+
+/**
+ * GET /api/v1/job
  * /active
  * Get only active jobs with filters
  */

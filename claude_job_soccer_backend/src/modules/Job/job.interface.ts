@@ -3,6 +3,15 @@ import { CandidateRole, EmployerRole } from "../user/user.interface";
 
 export type ContractType = "FullTime" | "PartTime";
 export type JobStatus = "active" | "closed" | "draft" | "expired";
+export type ExperienceLevel = "Entry Level" | "Intermediate" | "Mid-Level" | "Mid-Senior" | "Senior";
+
+export enum ExperienceLevelEnum {
+  ENTRY_LEVEL = "Entry Level",
+  INTERMEDIATE = "Intermediate",
+  MID_LEVEL = "Mid-Level",
+  MID_SENIOR = "Mid-Senior",
+  SENIOR = "Senior",
+}
 
 export interface IJob {
   jobTitle: string;
@@ -22,7 +31,7 @@ export interface IJob {
     max: number;
   };
   requiredAiScore?: number;
-  experience: string;
+  experience: ExperienceLevel;
   requirements: string;
   responsibilities: string;
   requiredSkills: string;

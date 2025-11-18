@@ -105,6 +105,8 @@ const addUserProfile = catchAsync(async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     
+
+    
     // Parse profile data from request
     const profileData = req.body.data ? JSON.parse(req.body.data) : req.body;
     
@@ -112,6 +114,9 @@ const addUserProfile = catchAsync(async (req: Request, res: Response) => {
     let profileImage = null;
     if (req.files && "image" in req.files && req.files.image[0]) {
       profileImage = req.files.image[0].path.replace('/app/uploads', '');
+    }
+    if(profileImage === null){
+     throw new AppError(400, "Profile image is required");
     }
     
     // Extract video files if present

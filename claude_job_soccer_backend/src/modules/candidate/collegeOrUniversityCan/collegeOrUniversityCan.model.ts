@@ -45,7 +45,7 @@ export type TCollegeOrUniversity = {
   league: string;
   schoolName: string;
   diploma: string;
-  gpa: string;
+  gpa?: string;
   country: (typeof countryList)[number];
   videos: {
     url: string;
@@ -94,7 +94,7 @@ const collegeOrUniversitySchema = new Schema<TCollegeOrUniversity>(
     league: { type: String, required: true, trim: true },
     schoolName: { type: String, required: true, trim: true },
     diploma: { type: String, required: true, trim: true },
-    gpa: { type: String, required: true, trim: true },
+    gpa: { type: String, required: false, trim: true },
     country: {
       type: String,
       enum: countryList,
