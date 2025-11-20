@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { JobController } from "./job.controller";
 import auth from "../../shared/middlewares/auth";
+import optionalAuth from "../../shared/middlewares/optionalAuth";
 import validateRequest from "../../shared/middlewares/validateRequest";
 import { JobValidation } from "./job.dto";
 import { UserType } from "../user/user.interface";
@@ -47,6 +48,7 @@ const router = express.Router();
  */
 router.get(
   "/",
+  optionalAuth,
   validateRequest(JobValidation.getAllJobsDto),
   JobController.getAllJobs
 );

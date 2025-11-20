@@ -6,10 +6,12 @@ import sendResponse from "../../shared/util/sendResponse";
 
 /**
  * Search candidates by name, category, and country
+ * Semi-private: Authenticated users get filtered results
  * Query params: searchTerm, role, country, page, limit, sortBy
  */
 const searchCandidates = catchAsync(async (req: Request, res: Response) => {
-  const result = await CandidateServices.searchCandidates(req.query);
+  const userId = req.user?.id; // Optional - may be undefined for unauthenticated users
+  const result = await CandidateServices.searchCandidates(req.query, userId);
      
   sendResponse(res, {
     statusCode: StatusCodes.OK,

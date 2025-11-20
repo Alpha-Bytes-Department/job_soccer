@@ -1,11 +1,13 @@
 import express, { Router } from "express";
 import { EmployerController } from "./employer.controller";
+import optionalAuth from "../../shared/middlewares/optionalAuth";
 
 const router = express.Router();
 
 /**
  * GET /api/v1/employers/search
  * Search employers by name, category, and country
+ * Semi-private: Authenticated users get filtered results
  * Query params:
  *   - searchTerm: string (search in firstName, lastName)
  *   - role: string (employer category/role)
@@ -14,7 +16,7 @@ const router = express.Router();
  *   - limit: number (default: 10)
  *   - sortBy: string (default: -createdAt)
  */
-router.get("/search", EmployerController.searchEmployers);
+router.get("/search", optionalAuth, EmployerController.searchEmployers);
 
 /**
  * GET /api/v1/employers/featured

@@ -6,6 +6,8 @@ import { Types } from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import { SearchHistoryService, SearchEntityType } from "../searchHistory/searchHistory.service";
 import { AI_SCORE_RANGES, AiScoreLevel, getDateFilterRange, DateFilter } from "./job.constants";
+import { SavedJob } from "../savedJobs/savesJobs.model";
+import { JobApply } from "../jobApply/jobApply.model";
 
 
 /**
@@ -19,8 +21,12 @@ const createJob = async (jobData: Partial<IJob>): Promise<IJob> => {
 /**
  * Get all jobs with advanced filtering, searching, and pagination
  * OPTIMIZED: Uses text index for search, compound indexes for filters
+ * SEMI-PRIVATE: When authenticated, excludes jobs user has saved or applied to
+ * 
+ * @param query - Query parameters for filtering
+ * @param userId - Optional user ID for authenticated filtering
  */
-const getAllJobs = async (query: Record<string, any>) => {
+const getAllJobs = async (query: Record<string, any>, userId?: string) => {
   // Track search term for history if provided
   if (query.searchTerm && typeof query.searchTerm === 'string') {
     // Don't await - fire and forget to avoid slowing down the query
@@ -90,6 +96,32 @@ const getAllJobs = async (query: Record<string, any>) => {
         ...queryFilter.requiredAiScore, 
         $lte: Number(query.maxRequiredAiScore) 
       };
+    }
+  }
+
+  // SEMI-PRIVATE FILTERING: Exclude jobs user has interacted with
+  if (userId) {
+    // Get job IDs that user has saved or applied to
+    const [savedJobIds, appliedJobIds] = await Promise.all([
+      SavedJob.find({ userId: new Types.ObjectId(userId) })
+        .select("jobId")
+        .lean()
+        .exec(),
+      JobApply.find({ candidateId: new Types.ObjectId(userId), isDeleted: false })
+        .select("jobId")
+        .lean()
+        .exec(),
+    ]);
+
+    // Combine all job IDs to exclude
+    const excludeJobIds = [
+      ...savedJobIds.map(s => s.jobId),
+      ...appliedJobIds.map(a => a.jobId),
+    ];
+
+    // Add exclusion filter if there are jobs to exclude
+    if (excludeJobIds.length > 0) {
+      queryFilter._id = { $nin: excludeJobIds };
     }
   }
 

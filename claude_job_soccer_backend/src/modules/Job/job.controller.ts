@@ -33,9 +33,11 @@ const createJob = catchAsync(async (req: Request, res: Response) => {
 /**
  * Get all jobs with advanced filtering and pagination
  * GET /api/v1/jobs
+ * Semi-private: Authenticated users get filtered results (excludes saved/applied jobs)
  */
 const getAllJobs = catchAsync(async (req: Request, res: Response) => {
-  const result = await JobService.getAllJobs(req.query);
+  const userId = req.user?.id; // Optional - may be undefined for unauthenticated users
+  const result = await JobService.getAllJobs(req.query, userId);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

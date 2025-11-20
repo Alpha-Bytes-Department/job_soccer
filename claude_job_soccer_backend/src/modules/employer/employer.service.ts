@@ -3,6 +3,7 @@ import AppError from "../../errors/AppError";
 import { User } from "../user/user.model";
 import { EmployerRole } from "../user/user.interface";
 import { SearchHistoryService, SearchEntityType } from "../searchHistory/searchHistory.service";
+import { Types } from "mongoose";
 
 // Import Employer Models
 import { AcademyEmp } from "./academyEmp/academyEmp.model";
@@ -12,6 +13,9 @@ import { CollegeOrUniversityEmp } from "./collegeOrUniversityEmp/collegeOrUniver
 import { ConsultingCompanyEmp } from "./consultingCompanyEmp/consultingCompanyEmp.model";
 import { HighSchoolEmp } from "./highSchoolEmp/highSchoolEmp.model";
 import { ProfessionalClubEmp } from "./professionalClubEmp/professionalClubEmp.model";
+
+// Import model for filtering
+import { Follow } from "../follow/follow.model";
 
 /**
  * Get employer model based on role
@@ -40,8 +44,12 @@ const getEmployerModel = (role: EmployerRole): any => {
 /**
  * Search employers by name, category, and country
  * Supports pagination, sorting, and filtering
+ * SEMI-PRIVATE: When authenticated, hides employers followed by the user (one-way)
+ * 
+ * @param query - Query parameters for filtering
+ * @param userId - Optional user ID for authenticated filtering
  */
-const searchEmployers = async (query: Record<string, unknown>) => {
+const searchEmployers = async (query: Record<string, unknown>, userId?: string) => {
   const {
     searchTerm,
     role,
@@ -62,6 +70,22 @@ const searchEmployers = async (query: Record<string, unknown>) => {
     isDeleted: { $ne: true },
     profileId: { $exists: true, $ne: null }, // Only users with profiles
   };
+
+  // SEMI-PRIVATE FILTERING: Hide employers followed by the user (one-way)
+  if (userId) {
+    const followedEmployers = await Follow.find({
+      followerId: new Types.ObjectId(userId),
+    })
+      .select("followingId")
+      .lean()
+      .exec();
+
+    // Add exclusion filter if there are employers to exclude
+    if (followedEmployers.length > 0) {
+      const excludeEmployerIds = followedEmployers.map(f => f.followingId);
+      userQuery._id = { $nin: excludeEmployerIds };
+    }
+  }
 
   // Filter by employer role/category if provided
   if (role) {

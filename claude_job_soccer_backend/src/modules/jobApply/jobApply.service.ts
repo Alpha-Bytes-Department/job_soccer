@@ -166,36 +166,48 @@ const applyToJob = async (
     );
   }
 
-  // Fetch supplementary data (experience, education, certifications) if available
-  const [experiences, educations, certifications] = await Promise.all([
-    CandidateExperience.find({ userId: candidateId }).lean(),
-    CandidateEducation.find({ userId: candidateId }).lean(),
-    CandidateLicenseAndCertification.find({ userId: candidateId }).lean(),
-  ]);
-
   // Build enriched candidate data for AI matching
   const enrichedCandidateData: Record<string, any> = {
     ...candidateProfile,
     role: candidate.role,
   };
 
-  // Add experience data if available
-  if (experiences && experiences.length > 0) {
-    enrichedCandidateData.experiences = experiences;
-    // Calculate total years of experience
-    const totalYears = calculateYearsOfExperience(experiences);
-    enrichedCandidateData.totalYearsOfExperience = totalYears;
-  }
+  // Determine if this is a player role
+  const playerRoles = [
+    CandidateRole.PROFESSIONAL_PLAYER,
+    CandidateRole.AMATEUR_PLAYER,
+    CandidateRole.HIGH_SCHOOL,
+    CandidateRole.COLLEGE_UNIVERSITY,
+  ];
+  const isPlayerRole = playerRoles.includes(candidate.role as CandidateRole);
 
-  // Add education data if available
-  if (educations && educations.length > 0) {
-    enrichedCandidateData.educations = educations;
-  }
+  // For non-player roles (office staff and on-field staff), fetch supplementary data
+  if (!isPlayerRole) {
+    const [experiences, educations, certifications] = await Promise.all([
+      CandidateExperience.find({ userId: candidateId }).lean(),
+      CandidateEducation.find({ userId: candidateId }).lean(),
+      CandidateLicenseAndCertification.find({ userId: candidateId }).lean(),
+    ]);
 
-  // Add certifications data if available
-  if (certifications && certifications.length > 0) {
-    enrichedCandidateData.certifications = certifications;
+    // Add experience data if available
+    if (experiences && experiences.length > 0) {
+      enrichedCandidateData.experiences = experiences;
+      // Calculate total years of experience
+      const totalYears = calculateYearsOfExperience(experiences);
+      enrichedCandidateData.totalYearsOfExperience = totalYears;
+    }
+
+    // Add education data if available
+    if (educations && educations.length > 0) {
+      enrichedCandidateData.educations = educations;
+    }
+
+    // Add certifications data if available
+    if (certifications && certifications.length > 0) {
+      enrichedCandidateData.certifications = certifications;
+    }
   }
+  // For player roles, only use profile data (no experience, education, certifications)
 
   // Calculate AI match score between job and candidate
   const aiMatchPercentage = await calculateJobMatchScore(

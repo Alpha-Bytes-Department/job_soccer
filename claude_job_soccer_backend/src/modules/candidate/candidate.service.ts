@@ -3,6 +3,7 @@ import AppError from "../../errors/AppError";
 import { User } from "../user/user.model";
 import { CandidateRole } from "../user/user.interface";
 import { SearchHistoryService, SearchEntityType } from "../searchHistory/searchHistory.service";
+import { Types } from "mongoose";
 
 // Import Candidate Models
 import { AmateurPlayerCan } from "./amateurPlayerCan/amateurPlayerCan.model";
@@ -11,6 +12,10 @@ import { OnFieldStaffCan } from "./onFieldStaffCan/onFieldStaffCan.model";
 import { OfficeStaffCan } from "./officeStaffCan/officeStaffCan.model";
 import { HighSchoolCan } from "./highSchoolCan/highSchoolCan.model";
 import { CollegeOrUniversity } from "./collegeOrUniversityCan/collegeOrUniversityCan.model";
+
+// Import models for filtering
+import { CandidateShortList } from "../candidateShortList/candidateShortList.model";
+import { FriendList } from "../friendlist/friendlist.model";
 
 /**
  * Get candidate model based on role
@@ -37,8 +42,14 @@ const getCandidateModel = (role: CandidateRole): any => {
 /**
  * Search candidates by name, category, and country
  * Supports pagination, sorting, and filtering
+ * SEMI-PRIVATE: When authenticated, applies custom hide logic:
+ * 1. Hide candidates shortlisted by the user (one-way)
+ * 2. Hide candidates with any friend request interaction (two-way)
+ * 
+ * @param query - Query parameters for filtering
+ * @param userId - Optional user ID for authenticated filtering
  */
-const searchCandidates = async (query: Record<string, unknown>) => {
+const searchCandidates = async (query: Record<string, unknown>, userId?: string) => {
   const {
     searchTerm,
     role,
@@ -58,6 +69,50 @@ const searchCandidates = async (query: Record<string, unknown>) => {
     isDeleted: { $ne: true },
     profileId: { $exists: true, $ne: null }, // Only users with profiles
   };
+
+  // SEMI-PRIVATE FILTERING: Apply when user is authenticated
+  if (userId) {
+    const excludeUserIds: Types.ObjectId[] = [];
+
+    // 1. Get candidates shortlisted by this user (one-way hide)
+    const shortlistedCandidates = await CandidateShortList.find({
+      shortlistedById: new Types.ObjectId(userId),
+    })
+      .select("candidateId")
+      .lean()
+      .exec();
+
+    excludeUserIds.push(...shortlistedCandidates.map(s => s.candidateId));
+
+    // 2. Get candidates with friend request interactions (two-way hide)
+    // This includes: sent, received, pending, accepted, rejected
+    const friendListInteractions = await FriendList.find({
+      $or: [
+        { senderId: new Types.ObjectId(userId) },
+        { receiverId: new Types.ObjectId(userId) },
+      ],
+    })
+      .select("senderId receiverId")
+      .lean()
+      .exec();
+
+    // Add both sender and receiver IDs (excluding the current user)
+    for (const interaction of friendListInteractions) {
+      if (interaction.senderId.toString() !== userId) {
+        excludeUserIds.push(interaction.senderId);
+      }
+      if (interaction.receiverId.toString() !== userId) {
+        excludeUserIds.push(interaction.receiverId);
+      }
+    }
+
+    // Add exclusion filter if there are users to exclude
+    if (excludeUserIds.length > 0) {
+      // Remove duplicates
+      const uniqueExcludeIds = [...new Set(excludeUserIds.map(id => id.toString()))];
+      userQuery._id = { $nin: uniqueExcludeIds.map(id => new Types.ObjectId(id)) };
+    }
+  }
 
   // Filter by candidate role/category if provided
   if (role) {
