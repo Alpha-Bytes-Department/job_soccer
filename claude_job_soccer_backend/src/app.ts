@@ -10,6 +10,7 @@ import { requestIdMiddleware } from "./shared/middlewares/requestIdAdder";
 import { helmetConfig } from "./shared/middlewares/security";
 import winstonLogger from "./shared/logger/winstonExpressLogger";
 import { logger } from "./shared/logger/logger";
+import { stripeWebhook } from "./modules/subscription/subscription.webhook";
 
 const app: express.Application = express();
 
@@ -59,6 +60,13 @@ app.use(
 // Request ID middleware - For tracking requests
 app.use(requestIdMiddleware);
 app.use(rateLimiter);
+
+app.post(
+  "/api/v1/subscription/stripe",
+  express.raw({ type: "application/json", limit: "10mb" }),
+  stripeWebhook
+);
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());

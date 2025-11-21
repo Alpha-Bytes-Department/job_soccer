@@ -63,6 +63,8 @@ const userSchema = new Schema<TBaseUser>(
       enum: ["candidate", "employer", "admin"],
       required: true,
     },
+    stripeCustomerId: {type:String,default:null},
+    activeSubscriptionId: { type: Schema.Types.ObjectId, ref: "Subscription" },
     isDeleted: { type: Boolean, default: false },
   },
   {
@@ -105,7 +107,7 @@ userSchema.pre("save", async function (next) {
       return next(new Error("Invalid role for employer userType"));
     }
   }
-  
+
   next();
 });
 

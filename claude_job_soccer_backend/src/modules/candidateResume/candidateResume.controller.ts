@@ -14,6 +14,7 @@ import path from "path";
 const addResume = catchAsync(async (req: Request, res: Response) => {
   // Parse form-data: the data field contains JSON string
   let parsedData;
+
   try {
     parsedData = req.body.data ? JSON.parse(req.body.data) : req.body;
   } catch (parseError) {
@@ -22,7 +23,6 @@ const addResume = catchAsync(async (req: Request, res: Response) => {
       "Invalid JSON format in data field"
     );
   }
-
   const { userId, setAsActive } = parsedData;
 
   // Check if file was uploaded

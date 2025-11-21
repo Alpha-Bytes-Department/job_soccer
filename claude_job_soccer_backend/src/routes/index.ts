@@ -17,6 +17,7 @@ import { JobApplyRoutes } from "../modules/jobApply/jobApply.route";
 import { ChatRoutes } from "../modules/chat/chat.route";
 import { MessageRoutes } from "../modules/message/message.route";
 import AdminVerificationRoutes from "../modules/adminVerification/adminVerification.route";
+import { SubscriptionRoutes } from "../modules/subscription/subscription.route";
 
 const router: Router = express.Router();
 
@@ -93,6 +94,10 @@ const apiRoutes = [
     path: "/admin-verification",
     route: AdminVerificationRoutes,
   },
+  {
+    path:"/subscription",
+    route:SubscriptionRoutes
+  }
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));

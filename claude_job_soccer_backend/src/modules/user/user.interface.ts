@@ -23,7 +23,7 @@ export enum EmployerRole {
   AGENT = "Agent",
 }
 export type TBaseUser = {
-  firstName: string; 
+  firstName: string;
   lastName: string;
   email: string;
   role: CandidateRole | EmployerRole;
@@ -32,6 +32,8 @@ export type TBaseUser = {
   userType: UserType;
   isVerified: boolean;
   isDeleted?: boolean;
+  activeSubscriptionId?: Types.ObjectId;
+  stripeCustomerId?: string;
   authId: Types.ObjectId;
 };
 

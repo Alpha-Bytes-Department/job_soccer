@@ -24,8 +24,21 @@ const myFormat = printf(({ level, message, label, timestamp, ...metadata }) => {
   const hour = date.getHours().toString().padStart(2, "0");
   const minutes = date.getMinutes().toString().padStart(2, "0");
   const seconds = date.getSeconds().toString().padStart(2, "0");
+  
+  // Ensure message is a string - handle objects, errors, etc.
+  let formattedMessage: string;
+  if (typeof message === 'string') {
+    formattedMessage = message;
+  } else if (message instanceof Error) {
+    formattedMessage = message.message;
+  } else if (typeof message === 'object' && message !== null) {
+    formattedMessage = JSON.stringify(message);
+  } else {
+    formattedMessage = String(message);
+  }
+  
   const meta = Object.keys(metadata).length ? JSON.stringify(metadata) : "";
-  return `${date.toDateString()} ${hour}:${minutes}:${seconds} [${label}] ${level}: ${message} ${meta}`;
+  return `${date.toDateString()} ${hour}:${minutes}:${seconds} [${label}] ${level}: ${formattedMessage} ${meta}`;
 });
 
 const fileTransport = (level: string, fileName: string) => {
@@ -36,13 +49,23 @@ const fileTransport = (level: string, fileName: string) => {
     zippedArchive: true,
     maxSize: "20m",
     maxFiles: "14d",
-    format: combine(label({ label: "Job Soccer" }), timestamp(), addRequestId, json()),
+    format: combine(
+      label({ label: "Job Soccer" }),
+      timestamp(),
+      addRequestId,
+      json()
+    ),
   });
 };
 
 export const consoleTransport = new transports.Console({
   level: "info",
-  format: combine(label({ label: "Job Soccer" }), timestamp(), addRequestId, myFormat),
+  format: combine(
+    label({ label: "Job Soccer" }),
+    timestamp(),
+    addRequestId,
+    myFormat
+  ),
 });
 
 export const elasticTransport = new ElasticsearchTransport({
@@ -74,12 +97,11 @@ elasticTransport.on("error", (error) => {
   // Silently fail in development
 });
 
-elasticTransport.on("warning", (warning) => {
-});
+elasticTransport.on("warning", (warning) => {});
 
 export const errorFileTransport = fileTransport(
   "error",
-   "logs/error/%DATE%-error.log"
+  "logs/error/%DATE%-error.log"
 );
 export const infoFileTransport = fileTransport(
   "info",
