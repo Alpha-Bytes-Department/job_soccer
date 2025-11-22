@@ -3,11 +3,7 @@ import { SubscriptionServices } from "./subscription.service";
 
 export const stripeWebhook = async (req: any, res: any) => {
   const sig = req.headers["stripe-signature"];
-  console.log(`
-    amar kaceo aycilo
-    ${sig}
-    
-    `);
+ 
   let event;
   try {
     event = stripe.webhooks.constructEvent(
@@ -15,13 +11,7 @@ export const stripeWebhook = async (req: any, res: any) => {
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-    console.log(`
-      
-      
-      ${event.type}
 
-
-      `);
   } catch (err: any) {
     console.log(`
       
@@ -30,19 +20,10 @@ export const stripeWebhook = async (req: any, res: any) => {
       `, err.message);
     return res.status(400).send(`Webhook error: ${err.message}`);
   }
-  console.log(event.type);
   switch (event.type) {
     case "customer.subscription.created":
     case "customer.subscription.updated":
-      console.log(`
-        
-        
-      before upsert stripe subscription
-        
-         ${event.data.object}
-        
-        `);
-
+      console.log(`Processing ${event.type} event for subscription: ${event.data.object.id}`);
       await SubscriptionServices.upsertStripeSubscription(event.data.object);
       break;
 

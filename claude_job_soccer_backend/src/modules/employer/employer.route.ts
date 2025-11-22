@@ -33,6 +33,7 @@ router.get("/search", optionalAuth, EmployerController.searchEmployers);
  *   "Agent": [{...}, {...}]
  * }
  */
+
 router.get("/featured", EmployerController.getFeaturedEmployers);
 
 /**

@@ -2,7 +2,10 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import { User } from "../user/user.model";
 import { EmployerRole } from "../user/user.interface";
-import { SearchHistoryService, SearchEntityType } from "../searchHistory/searchHistory.service";
+import {
+  SearchHistoryService,
+  SearchEntityType,
+} from "../searchHistory/searchHistory.service";
 import { Types } from "mongoose";
 
 // Import Employer Models
@@ -14,8 +17,9 @@ import { ConsultingCompanyEmp } from "./consultingCompanyEmp/consultingCompanyEm
 import { HighSchoolEmp } from "./highSchoolEmp/highSchoolEmp.model";
 import { ProfessionalClubEmp } from "./professionalClubEmp/professionalClubEmp.model";
 
-// Import model for filtering
+// Import models for filtering and counting
 import { Follow } from "../follow/follow.model";
+import { Job } from "../Job/job.model";
 
 /**
  * Get employer model based on role
@@ -45,11 +49,14 @@ const getEmployerModel = (role: EmployerRole): any => {
  * Search employers by name, category, and country
  * Supports pagination, sorting, and filtering
  * SEMI-PRIVATE: When authenticated, hides employers followed by the user (one-way)
- * 
+ *
  * @param query - Query parameters for filtering
  * @param userId - Optional user ID for authenticated filtering
  */
-const searchEmployers = async (query: Record<string, unknown>, userId?: string) => {
+const searchEmployers = async (
+  query: Record<string, unknown>,
+  userId?: string
+) => {
   const {
     searchTerm,
     role,
@@ -61,7 +68,10 @@ const searchEmployers = async (query: Record<string, unknown>, userId?: string) 
 
   // Record search term for history tracking
   if (searchTerm) {
-    await SearchHistoryService.recordSearch(SearchEntityType.EMPLOYER, searchTerm as string);
+    await SearchHistoryService.recordSearch(
+      SearchEntityType.EMPLOYER,
+      searchTerm as string
+    );
   }
 
   // Build base user query for employers only
@@ -82,7 +92,7 @@ const searchEmployers = async (query: Record<string, unknown>, userId?: string) 
 
     // Add exclusion filter if there are employers to exclude
     if (followedEmployers.length > 0) {
-      const excludeEmployerIds = followedEmployers.map(f => f.followingId);
+      const excludeEmployerIds = followedEmployers.map((f) => f.followingId);
       userQuery._id = { $nin: excludeEmployerIds };
     }
   }
@@ -107,7 +117,7 @@ const searchEmployers = async (query: Record<string, unknown>, userId?: string) 
     .limit(Number(limit))
     .lean();
 
-  // Fetch profile details for each user
+  // Fetch profile details for each user with active job count and follower count
   const employersWithProfiles = await Promise.all(
     users.map(async (user) => {
       const employerModel = getEmployerModel(user.role as EmployerRole);
@@ -118,6 +128,17 @@ const searchEmployers = async (query: Record<string, unknown>, userId?: string) 
         return null;
       }
 
+      // Count active jobs posted by this employer
+      const activeJobCount = await Job.countDocuments({
+        "creator.creatorId": user._id,
+        status: "active",
+      });
+
+      // Count followers for this employer
+      const followerCount = await Follow.countDocuments({
+        followingId: user._id,
+      });
+
       return {
         _id: user._id,
         firstName: user.firstName,
@@ -127,6 +148,8 @@ const searchEmployers = async (query: Record<string, unknown>, userId?: string) 
         profileImage: user.profileImage,
         userType: user.userType,
         profile,
+        activeJobCount,
+        followerCount,
       };
     })
   );
@@ -186,7 +209,16 @@ const getFeaturedEmployers = async () => {
         users.map(async (user) => {
           const employerModel = getEmployerModel(user.role as EmployerRole);
           const profile = await employerModel.findById(user.profileId).lean();
+          // Count active jobs posted by this employer
+          const activeJobCount = await Job.countDocuments({
+            "creator.creatorId": user._id,
+            status: "active",
+          });
 
+          // Count followers for this employer
+          const followerCount = await Follow.countDocuments({
+            followingId: user._id,
+          });
           return {
             _id: user._id,
             firstName: user.firstName,
@@ -196,6 +228,8 @@ const getFeaturedEmployers = async () => {
             profileImage: user.profileImage,
             userType: user.userType,
             profile,
+            activeJobCount,
+            followerCount,
           };
         })
       );

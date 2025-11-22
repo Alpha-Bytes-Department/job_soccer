@@ -41,7 +41,8 @@ export const createCheckoutSession = async (
 };
 
 const upsertStripeSubscription = async (stripeSub: any) => {
-  console.log("---------------------------> Inside upsertStripeSubscription  1st Line<------------------------- ");
+  console.log("---------------------------> Processing Stripe Subscription:", stripeSub.id, "<-------------------------");
+  
   const customerId = stripeSub.customer;
 
   const user = await User.findOne({ stripeCustomerId: customerId });
@@ -50,14 +51,9 @@ const upsertStripeSubscription = async (stripeSub: any) => {
   let subscription = await Subscription.findOne({
     stripeSubscriptionId: stripeSub.id,
   });
-  console.log(
-    "---------------------------> Inside upsertStripeSubscription  Subscription ID: ",
-    
-    subscription?._id,
-    "<-------------------------"
-  );
-  console.log("--------------------------->Hello<-------------------------");
+  
   if (!subscription) {
+    console.log("---------------------------> Creating new subscription for user:", user._id, "<-------------------------");
     const stripeInterval = stripeSub.items.data[0].price.recurring.interval;
     const stripeIntervalCount = stripeSub.items.data[0].price.recurring.interval_count;
     
@@ -83,10 +79,21 @@ const upsertStripeSubscription = async (stripeSub: any) => {
   }
 
   subscription.status = stripeSub.status;
-  subscription.currentPeriodStart = new Date(
-    stripeSub.current_period_start * 1000
-  );
-  subscription.currentPeriodEnd = new Date(stripeSub.current_period_end * 1000);
+  
+  // Get period dates from the subscription item (Stripe stores them there)
+  const currentPeriodStart = stripeSub.current_period_start || 
+    stripeSub.items?.data?.[0]?.current_period_start;
+  const currentPeriodEnd = stripeSub.current_period_end || 
+    stripeSub.items?.data?.[0]?.current_period_end;
+  
+  // Only update period dates if they exist (they may be undefined for incomplete subscriptions)
+  if (currentPeriodStart) {
+    subscription.currentPeriodStart = new Date(currentPeriodStart * 1000);
+  }
+  
+  if (currentPeriodEnd) {
+    subscription.currentPeriodEnd = new Date(currentPeriodEnd * 1000);
+  }
 
   await subscription.save();
 
