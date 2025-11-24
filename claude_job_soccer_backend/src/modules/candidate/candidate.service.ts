@@ -181,7 +181,7 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
  * Get featured candidates grouped by category
  * Returns max 4 candidates per category
  */
-const getFeaturedCandidates = async () => {
+const getFeaturedCandidates = async (userId?:string) => {
   const categories = [
     CandidateRole.PROFESSIONAL_PLAYER,
     CandidateRole.AMATEUR_PLAYER,

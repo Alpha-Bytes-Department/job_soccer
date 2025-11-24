@@ -31,7 +31,7 @@ router.get("/search", optionalAuth, CandidateController.searchCandidates);
  *   "OfficeStaff": [{...}, {...}]
  * }
  */
-router.get("/featured", CandidateController.getFeaturedCandidates);
+router.get("/featured", optionalAuth,CandidateController.getFeaturedCandidates);
 
 /**
  * GET /api/v1/candidates/:id

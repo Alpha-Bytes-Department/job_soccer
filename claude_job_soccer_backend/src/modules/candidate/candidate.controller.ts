@@ -27,7 +27,8 @@ const searchCandidates = catchAsync(async (req: Request, res: Response) => {
  * Returns max 4 candidates per category
  */
 const getFeaturedCandidates = catchAsync(async (req: Request, res: Response) => {
-  const result = await CandidateServices.getFeaturedCandidates();
+    const userId = req.user?.id; // Optional - may be undefined for unauthenticated users
+  const result = await CandidateServices.getFeaturedCandidates(userId);
   
   sendResponse(res, {
     statusCode: StatusCodes.OK,

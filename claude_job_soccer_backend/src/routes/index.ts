@@ -19,6 +19,8 @@ import { MessageRoutes } from "../modules/message/message.route";
 import AdminVerificationRoutes from "../modules/adminVerification/adminVerification.route";
 import { SubscriptionRoutes } from "../modules/subscription/subscription.route";
 import { EmailSubscriptionRoutes } from "../modules/emailSubscription/emailSubscription.route";
+import { DashboardRoutes } from "../modules/dashboard/dashboard.route";
+import { ProfileViewRoutes } from "../modules/profileView/profileView.route";
 
 const router: Router = express.Router();
 
@@ -102,6 +104,14 @@ const apiRoutes = [
   {
     path: "/email-subscriptions",
     route: EmailSubscriptionRoutes,
+  },
+  {
+    path: "/dashboard",
+    route: DashboardRoutes,
+  },
+  {
+    path: "/profile-views",
+    route: ProfileViewRoutes,
   },
 ];
 

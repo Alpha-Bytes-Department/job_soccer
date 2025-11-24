@@ -341,7 +341,7 @@ Listen for these Stripe events:
 3. Verify: Gets 400 error message
 
 ## Upgrade Example
-
+    
 **Scenario:**
 - User has monthly subscription (30 days)
 - 7 days remaining

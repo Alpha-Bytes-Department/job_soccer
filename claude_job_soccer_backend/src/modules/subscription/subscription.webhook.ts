@@ -1,5 +1,6 @@
 import { stripe } from "../../config/stripe.config";
 import { SubscriptionServices } from "./subscription.service";
+import { PaymentHistoryService } from "../paymentHistory/paymentHistory.service";
 
 export const stripeWebhook = async (req: any, res: any) => {
   const sig = req.headers["stripe-signature"];
@@ -59,6 +60,61 @@ export const stripeWebhook = async (req: any, res: any) => {
 
     case "customer.subscription.deleted":
       // optional: mark canceled in DB
+      break;
+
+    case "invoice.paid":
+      console.log(`Processing invoice.paid event`);
+      try {
+        const invoice: any = event.data.object;
+        
+        // Get payment intent details
+        let paymentIntentId = invoice.payment_intent;
+        let paymentMethod = null;
+        
+        if (paymentIntentId && typeof paymentIntentId === "string") {
+          try {
+            const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+            paymentMethod = paymentIntent.payment_method_types?.[0] || "card";
+          } catch (error) {
+            console.error("Failed to retrieve payment intent:", error);
+          }
+        }
+
+        await PaymentHistoryService.createPaymentHistory({
+          stripeCustomerId: invoice.customer,
+          stripePaymentIntentId: paymentIntentId || invoice.id,
+          stripeInvoiceId: invoice.id,
+          stripeSubscriptionId: invoice.subscription,
+          amount: invoice.amount_paid / 100, // Convert from cents to dollars
+          currency: invoice.currency,
+          status: "succeeded",
+          paymentMethod: paymentMethod || undefined,
+          description: invoice.description || "Subscription payment",
+          paidAt: new Date(invoice.status_transitions?.paid_at * 1000 || Date.now()),
+        });
+      } catch (error) {
+        console.error("Failed to create payment history:", error);
+      }
+      break;
+
+    case "invoice.payment_failed":
+      console.log(`Processing invoice.payment_failed event`);
+      try {
+        const invoice: any = event.data.object;
+        
+        await PaymentHistoryService.createPaymentHistory({
+          stripeCustomerId: invoice.customer,
+          stripePaymentIntentId: invoice.payment_intent || invoice.id,
+          stripeInvoiceId: invoice.id,
+          stripeSubscriptionId: invoice.subscription,
+          amount: invoice.amount_due / 100,
+          currency: invoice.currency,
+          status: "failed",
+          description: invoice.description || "Failed subscription payment",
+        });
+      } catch (error) {
+        console.error("Failed to create payment history for failed payment:", error);
+      }
       break;
   }
 
