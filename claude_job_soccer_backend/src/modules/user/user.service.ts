@@ -138,6 +138,36 @@ const getMe = async (userId: string): Promise<any> => {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
 
+  // Get subscription details
+  let subscriptionInfo = null;
+  if (user.activeSubscriptionId) {
+    const { Subscription } = await import("../subscription/subscription.model");
+    const subscription = await Subscription.findById(user.activeSubscriptionId).lean();
+    if (subscription) {
+      const isActive =
+        subscription.status === "active" &&
+        subscription.currentPeriodEnd &&
+        new Date(subscription.currentPeriodEnd) > new Date();
+
+      subscriptionInfo = {
+        hasActiveSubscription: isActive,
+        interval: subscription.interval,
+        status: subscription.status,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        remainingDays: subscription.currentPeriodEnd
+          ? Math.max(
+              0,
+              Math.ceil(
+                (new Date(subscription.currentPeriodEnd).getTime() -
+                  new Date().getTime()) /
+                  (1000 * 60 * 60 * 24)
+              )
+            )
+          : 0,
+      };
+    }
+  }
+
   // Fetch profile based on userType and role
   let profile: any = null;
   
@@ -207,6 +237,7 @@ const getMe = async (userId: string): Promise<any> => {
     educations,
     experiences,
     certifications,
+    subscription: subscriptionInfo,
   };
 };
 

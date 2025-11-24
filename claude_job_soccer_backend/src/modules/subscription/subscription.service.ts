@@ -40,7 +40,7 @@ export const createCheckoutSession = async (
   }
 };
 
-const upsertStripeSubscription = async (stripeSub: any) => {
+const upsertStripeSubscription = async (stripeSub: any, metadata?: any) => {
   console.log("---------------------------> Processing Stripe Subscription:", stripeSub.id, "<-------------------------");
   
   const customerId = stripeSub.customer;
@@ -76,6 +76,16 @@ const upsertStripeSubscription = async (stripeSub: any) => {
       interval: interval,
       intervalCount: stripeIntervalCount,
     });
+
+    // If this is an upgrade, cancel the old subscription
+    if (metadata?.isUpgrade === "true" && metadata?.oldSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(metadata.oldSubscriptionId);
+        console.log("---------------------------> Canceled old subscription:", metadata.oldSubscriptionId, "<-------------------------");
+      } catch (error) {
+        console.error("Failed to cancel old subscription:", error);
+      }
+    }
   }
 
   subscription.status = stripeSub.status;
@@ -83,7 +93,7 @@ const upsertStripeSubscription = async (stripeSub: any) => {
   // Get period dates from the subscription item (Stripe stores them there)
   const currentPeriodStart = stripeSub.current_period_start || 
     stripeSub.items?.data?.[0]?.current_period_start;
-  const currentPeriodEnd = stripeSub.current_period_end || 
+  let currentPeriodEnd = stripeSub.current_period_end || 
     stripeSub.items?.data?.[0]?.current_period_end;
   
   // Only update period dates if they exist (they may be undefined for incomplete subscriptions)
@@ -92,7 +102,18 @@ const upsertStripeSubscription = async (stripeSub: any) => {
   }
   
   if (currentPeriodEnd) {
-    subscription.currentPeriodEnd = new Date(currentPeriodEnd * 1000);
+    let endDate = new Date(currentPeriodEnd * 1000);
+
+    // If this is an upgrade, add remaining days from old subscription
+    if (metadata?.isUpgrade === "true" && metadata?.remainingDays) {
+      const remainingDays = parseInt(metadata.remainingDays, 10);
+      if (remainingDays > 0) {
+        endDate = new Date(endDate.getTime() + remainingDays * 24 * 60 * 60 * 1000);
+        console.log("---------------------------> Extended subscription by", remainingDays, "days. New end date:", endDate, "<-------------------------");
+      }
+    }
+
+    subscription.currentPeriodEnd = endDate;
   }
 
   await subscription.save();
@@ -102,6 +123,55 @@ const upsertStripeSubscription = async (stripeSub: any) => {
   await user.save();
 };
 
+const getCurrentSubscription = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(404, "User not found");
+  }
+
+  if (!user.activeSubscriptionId) {
+    return {
+      hasActiveSubscription: false,
+      subscription: null,
+    };
+  }
+
+  const subscription = await Subscription.findById(user.activeSubscriptionId);
+  
+  if (!subscription) {
+    return {
+      hasActiveSubscription: false,
+      subscription: null,
+    };
+  }
+
+  const isActive =
+    subscription.status === "active" &&
+    subscription.currentPeriodEnd &&
+    new Date(subscription.currentPeriodEnd) > new Date();
+
+  return {
+    hasActiveSubscription: isActive,
+    subscription: {
+      interval: subscription.interval,
+      status: subscription.status,
+      currentPeriodStart: subscription.currentPeriodStart,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+      remainingDays: subscription.currentPeriodEnd
+        ? Math.max(
+            0,
+            Math.ceil(
+              (new Date(subscription.currentPeriodEnd).getTime() -
+                new Date().getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          )
+        : 0,
+    },
+  };
+};
+
 export const SubscriptionServices = {
   upsertStripeSubscription,
+  getCurrentSubscription,
 };

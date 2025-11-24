@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import catchAsync from "../../shared/util/catchAsync";
 import { STRIPE_PRICES } from "./subscription.constant";
-import { createCheckoutSession } from "./subscription.service";
+import { createCheckoutSession, SubscriptionServices } from "./subscription.service";
 
 const checkout = catchAsync(async (req: Request, res: Response) => {
   const { interval } = req.body;
@@ -14,7 +14,19 @@ console.log("---------------------------> amar kace aycilo");
   res.status(200).json({ url });
 });
 
+const getCurrentSubscription = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user.id;
+    const result = await SubscriptionServices.getCurrentSubscription(userId);
+    res.status(200).json({
+      success: true,
+      message: "Current subscription retrieved successfully",
+      data: result,
+    });
+  }
+);
 
 export const SubscriptionController = {
   checkout,
+  getCurrentSubscription,
 };
