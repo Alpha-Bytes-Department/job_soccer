@@ -65,4 +65,4 @@ router.get(
   EmailSubscriptionController.checkIfEmailSubscribed
 );
 
-export default router;
+export const EmailSubscriptionRoutes = router;

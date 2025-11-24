@@ -18,6 +18,7 @@ import { ChatRoutes } from "../modules/chat/chat.route";
 import { MessageRoutes } from "../modules/message/message.route";
 import AdminVerificationRoutes from "../modules/adminVerification/adminVerification.route";
 import { SubscriptionRoutes } from "../modules/subscription/subscription.route";
+import { EmailSubscriptionRoutes } from "../modules/emailSubscription/emailSubscription.route";
 
 const router: Router = express.Router();
 
@@ -95,12 +96,15 @@ const apiRoutes = [
     route: AdminVerificationRoutes,
   },
   {
-    path:"/subscription",
-    route:SubscriptionRoutes
-  }
+    path: "/subscription",
+    route: SubscriptionRoutes,
+  },
+  {
+    path: "/email-subscriptions",
+    route: EmailSubscriptionRoutes,
+  },
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));
 
 export default router;
-
