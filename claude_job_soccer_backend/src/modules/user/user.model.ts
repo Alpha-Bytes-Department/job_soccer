@@ -43,6 +43,11 @@ const userSchema = new Schema<TBaseUser>(
       trim: true,
       default: null,
     },
+    bannerImage: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     profileId: {
       type: String,
       required: false,

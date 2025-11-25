@@ -27,6 +27,7 @@ const fileUploadHandler = (req: Request, res: Response, next: NextFunction) => {
       console.log(file.fieldname);
       switch (file.fieldname) {
         case "image":
+        case "banner":
           uploadDir = path.join(baseUploadDir, "images");
           break;
         case "media":
@@ -50,7 +51,7 @@ const fileUploadHandler = (req: Request, res: Response, next: NextFunction) => {
       let fileExt: string;
       if (file.fieldname === "doc" || file.fieldname === "docs") {
         fileExt = ".pdf";
-      } else if (file.fieldname === "image") {
+      } else if (file.fieldname === "image" || file.fieldname === "banner") {
         fileExt = ".tmp"; // will be converted to .webp later
       } else if (file.fieldname === "videos") {
         // Retain original video extension
@@ -68,7 +69,7 @@ const fileUploadHandler = (req: Request, res: Response, next: NextFunction) => {
 
   // File filter
   const filterFilter = (_req: Request, file: any, cb: FileFilterCallback) => {
-    if (file.fieldname === "image") {
+    if (file.fieldname === "image" || file.fieldname === "banner") {
       if (
         file.mimetype === "image/jpeg" ||
         file.mimetype === "image/png" ||
@@ -136,6 +137,7 @@ const fileUploadHandler = (req: Request, res: Response, next: NextFunction) => {
     fileFilter: filterFilter,
   }).fields([
     { name: "image", maxCount: 10 },
+    { name: "banner", maxCount: 1 },
     { name: "media", maxCount: 10 },
     { name: "doc", maxCount: 10 },
     { name: "docs", maxCount: 10 },
@@ -195,6 +197,60 @@ const fileUploadHandler = (req: Request, res: Response, next: NextFunction) => {
           new AppError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             "Image processing failed"
+          )
+        );
+      }
+    }
+
+    // Process banner images
+    if (req.files && "banner" in req.files) {
+      const bannerFiles = (
+        req.files as { [fieldname: string]: Express.Multer.File[] }
+      )["banner"];
+      try {
+        await Promise.all(
+          bannerFiles.map(async (file) => {
+            const inputFilePath = file.path;
+            const newFilePath = inputFilePath.replace(/\.tmp$/, ".webp");
+
+            try {
+              const sharpInstance = sharp(inputFilePath);
+              const metadata = await sharpInstance.metadata();
+
+              const pipeline =
+                (metadata.width ?? 0) > 1024
+                  ? sharp(inputFilePath).resize({ width: 1024 })
+                  : sharp(inputFilePath);
+
+              // Convert to WebP with optimized settings
+              await pipeline
+                .webp({
+                  quality: 40,
+                  effort: 2,
+                  nearLossless: false,
+                })
+                .toFile(newFilePath);
+
+              // Delete temporary file asynchronously
+              await fs.promises.unlink(inputFilePath);
+
+              // Update file metadata for downstream middlewares
+              file.path = newFilePath;
+              file.filename = path.basename(newFilePath);
+            } catch (fileError) {
+              // Clean up on individual file error
+              if (fs.existsSync(inputFilePath)) {
+                await fs.promises.unlink(inputFilePath);
+              }
+              throw fileError;
+            }
+          })
+        );
+      } catch (error) {
+        return next(
+          new AppError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            "Banner image processing failed"
           )
         );
       }

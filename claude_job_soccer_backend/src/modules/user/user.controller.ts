@@ -172,6 +172,12 @@ const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
       profileImage = req.files.image[0].path.replace('/app/uploads', '');
     }
     
+    // Extract banner image if present
+    let bannerImage = null;
+    if (req.files && "banner" in req.files && req.files.banner[0]) {
+      bannerImage = req.files.banner[0].path.replace('/app/uploads', '');
+    }
+    
     // Extract video files if present
     const videoFiles = extractVideoFiles(req);
     
@@ -192,6 +198,7 @@ const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
       userId,
       data: profileData,
       profileImage,
+      bannerImage,
       videoFiles,
       videoMetadata,
       videoTitles,

@@ -50,9 +50,6 @@ import { ConsultingCompanyEmp } from "../employer/consultingCompanyEmp/consultin
 import { HighSchoolEmp } from "../employer/highSchoolEmp/highSchoolEmp.model";
 
 import { ProfessionalClubEmp } from "../employer/professionalClubEmp/professionalClubEmp.model";
-import { CandidateEducation } from "../candidateEducation/candidateEducation.model";
-import { CandidateExperience } from "../candidateExperience/candidateExperience.model";
-import { CandidateLicenseAndCertification } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.model";
 import { CandidateEducationService } from "../candidateEducation/candidateEducation.service";
 import { CandidateExperienceService } from "../candidateExperience/candidateExperience.service";
 import { CandidateLicensesAndCertificationService } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.service";
@@ -70,13 +67,83 @@ const getAllUsers = async (query: Record<string, unknown>) => {
 
   return { result, meta };
 };
-const getUserById = async (id: string) => {
-  const user = await User.findById(id);
+const getUserById = async (userId: string) => {
+  const user = await User.findById(userId).lean();
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
-  // Cache the freshly retrieved user data.
-  return user;
+
+  // Fetch profile based on userType and role
+  let profile: any = null;
+
+  if (user.profileId) {
+    if (user.userType === "candidate") {
+      switch (user.role) {
+        case CandidateRole.AMATEUR_PLAYER:
+          profile = await AmateurPlayerCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.PROFESSIONAL_PLAYER:
+          profile = await ProfessionalPlayerCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.ON_FIELD_STAFF:
+          profile = await OnFieldStaffCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.OFFICE_STAFF:
+          profile = await OfficeStaffCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.HIGH_SCHOOL:
+          profile = await HighSchoolCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.COLLEGE_UNIVERSITY:
+          profile = await CollegeOrUniversity.findById(user.profileId).lean();
+          break;
+      }
+    } else if (user.userType === "employer") {
+      switch (user.role) {
+        case EmployerRole.ACADEMY:
+          profile = await AcademyEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.AGENT:
+          profile = await AgentEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.AMATEUR_CLUB:
+          profile = await AmateurClubEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.COLLEGE_UNIVERSITY:
+          profile = await CollegeOrUniversityEmp.findById(
+            user.profileId
+          ).lean();
+          break;
+        case EmployerRole.CONSULTING_COMPANY:
+          profile = await ConsultingCompanyEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.HIGH_SCHOOL:
+          profile = await HighSchoolEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.PROFESSIONAL_CLUB:
+          profile = await ProfessionalClubEmp.findById(user.profileId).lean();
+          break;
+      }
+    }
+  }
+  const educations = await CandidateEducationService.getAllEducationsByUser(
+    userId
+  );
+  const experiences = await CandidateExperienceService.getAllExperiencesByUser(
+    userId
+  );
+  const certifications =
+    await CandidateLicensesAndCertificationService.getAllLicensesAndCertificationsByUser(
+      userId
+    );
+
+  return {
+    ...user,
+    profile,
+    educations,
+    experiences,
+    certifications,
+  };
 };
 const updateUser = async (id: string, updateData: any) => {
   const user = await User.findById(id);
@@ -143,7 +210,9 @@ const getMe = async (userId: string): Promise<any> => {
   let subscriptionInfo = null;
   if (user.activeSubscriptionId) {
     const { Subscription } = await import("../subscription/subscription.model");
-    const subscription = await Subscription.findById(user.activeSubscriptionId).lean();
+    const subscription = await Subscription.findById(
+      user.activeSubscriptionId
+    ).lean();
     if (subscription) {
       const isActive =
         subscription.status === "active" &&
@@ -171,7 +240,7 @@ const getMe = async (userId: string): Promise<any> => {
 
   // Fetch profile based on userType and role
   let profile: any = null;
-  
+
   if (user.profileId) {
     if (user.userType === "candidate") {
       switch (user.role) {
@@ -206,7 +275,9 @@ const getMe = async (userId: string): Promise<any> => {
           profile = await AmateurClubEmp.findById(user.profileId).lean();
           break;
         case EmployerRole.COLLEGE_UNIVERSITY:
-          profile = await CollegeOrUniversityEmp.findById(user.profileId).lean();
+          profile = await CollegeOrUniversityEmp.findById(
+            user.profileId
+          ).lean();
           break;
         case EmployerRole.CONSULTING_COMPANY:
           profile = await ConsultingCompanyEmp.findById(user.profileId).lean();
@@ -231,7 +302,6 @@ const getMe = async (userId: string): Promise<any> => {
       userId
     );
 
-
   return {
     ...user,
     profile,
@@ -250,7 +320,14 @@ const addUserProfile = async (payload: {
   videoMetadata?: any[];
   videoTitles?: string[];
 }) => {
-  const { userId, data, profileImage, videoFiles = [], videoMetadata, videoTitles } = payload;
+  const {
+    userId,
+    data,
+    profileImage,
+    videoFiles = [],
+    videoMetadata,
+    videoTitles,
+  } = payload;
 
   // Check if user exists
   const user = await User.findById(userId);
@@ -329,7 +406,9 @@ const addUserProfile = async (payload: {
         if (videoFiles.length === 0) {
           throw new AppError(
             StatusCodes.BAD_REQUEST,
-            `Videos are required for ${data.position || 'On Field Staff'}. Please upload the required videos.`
+            `Videos are required for ${
+              data.position || "On Field Staff"
+            }. Please upload the required videos.`
           );
         }
 
@@ -453,7 +532,10 @@ const addUserProfile = async (payload: {
         );
         if (!officeStaffValidation.isValid) {
           await cleanupUploadedFiles(videoFiles);
-          throw new AppError(StatusCodes.BAD_REQUEST, officeStaffValidation.error!);
+          throw new AppError(
+            StatusCodes.BAD_REQUEST,
+            officeStaffValidation.error!
+          );
         }
 
         // Process staff videos
@@ -547,12 +629,10 @@ const addUserProfile = async (payload: {
   if (profileImage) {
     updateData.profileImage = profileImage;
   }
-  
-  const updatedUser = await User.findByIdAndUpdate(
-    userId,
-    updateData,
-    { new: true }
-  );
+
+  const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+    new: true,
+  });
 
   if (!updatedUser) {
     throw new AppError(
@@ -571,11 +651,20 @@ const updateUserProfile = async (payload: {
   userId: string;
   data: any;
   profileImage?: string | null;
+  bannerImage?: string | null;
   videoFiles?: Express.Multer.File[];
   videoMetadata?: any[];
   videoTitles?: string[];
 }) => {
-  const { userId, data, profileImage, videoFiles = [], videoMetadata, videoTitles } = payload;
+  const {
+    userId,
+    data,
+    profileImage,
+    bannerImage,
+    videoFiles = [],
+    videoMetadata,
+    videoTitles,
+  } = payload;
 
   // Check if user exists
   const user = await User.findById(userId);
@@ -591,6 +680,24 @@ const updateUserProfile = async (payload: {
     );
   }
 
+  // Separate user fields from profile fields
+  const userFields = ['firstName', 'lastName'];
+  const userUpdateData: any = {};
+  const profileData: any = { ...data }; // Copy all data to profileData first
+
+  // Remove email from update data if present (email cannot be updated via profile update)
+  if (profileData.email) {
+    delete profileData.email;
+  }
+
+  // Extract user-specific fields from profileData and move to userUpdateData
+  for (const field of userFields) {
+    if (field in profileData) {
+      userUpdateData[field] = profileData[field];
+      delete profileData[field];
+    }
+  }
+
   let validatedData: any;
   let Model: any;
   let DtoValidator: any;
@@ -601,7 +708,7 @@ const updateUserProfile = async (payload: {
       case CandidateRole.AMATEUR_PLAYER:
         Model = AmateurPlayerCan;
         DtoValidator = AmateurPlayerCanDto.updateAmateurPlayerCanDto;
-        
+
         // Handle player videos if provided
         if (videoFiles.length > 0) {
           const validation = await validatePlayerVideos(
@@ -616,14 +723,14 @@ const updateUserProfile = async (payload: {
             videoFiles,
             videoTitles || []
           );
-          data.videos = processedVideos;
+          profileData.videos = processedVideos;
         }
         break;
 
       case CandidateRole.PROFESSIONAL_PLAYER:
         Model = ProfessionalPlayerCan;
         DtoValidator = ProfessionalPlayerCanDto.updateProfessionalPlayerCanDto;
-        
+
         // Handle player videos if provided
         if (videoFiles.length > 0) {
           const validation = await validatePlayerVideos(
@@ -638,14 +745,14 @@ const updateUserProfile = async (payload: {
             videoFiles,
             videoTitles || []
           );
-          data.videos = processedVideos;
+          profileData.videos = processedVideos;
         }
         break;
 
       case CandidateRole.ON_FIELD_STAFF:
         Model = OnFieldStaffCan;
         DtoValidator = OnFieldStaffCanDto.updateOnFieldStaffCanDto;
-        
+
         // Handle staff videos if provided
         if (videoFiles.length > 0) {
           if (!videoMetadata) {
@@ -656,7 +763,7 @@ const updateUserProfile = async (payload: {
             );
           }
           const validation = await validateVideos(
-            data.position,
+            profileData.position || data.position,
             videoMetadata,
             videoFiles
           );
@@ -668,14 +775,14 @@ const updateUserProfile = async (payload: {
             videoFiles,
             videoMetadata
           );
-          data.videos = processedVideos;
+          profileData.videos = processedVideos;
         }
         break;
 
       case CandidateRole.HIGH_SCHOOL:
         Model = HighSchoolCan;
         DtoValidator = HighSchoolCanDto.updateHighSchoolCanDto;
-        
+
         // Handle player videos if provided
         if (videoFiles.length > 0) {
           const validation = await validatePlayerVideos(
@@ -690,14 +797,15 @@ const updateUserProfile = async (payload: {
             videoFiles,
             videoTitles || []
           );
-          data.videos = processedVideos;
+          profileData.videos = processedVideos;
         }
         break;
 
       case CandidateRole.COLLEGE_UNIVERSITY:
         Model = CollegeOrUniversity;
-        DtoValidator = CollegeOrUniversityCanDto.updateCollegeOrUniversityCanDto;
-        
+        DtoValidator =
+          CollegeOrUniversityCanDto.updateCollegeOrUniversityCanDto;
+
         // Handle player videos if provided
         if (videoFiles.length > 0) {
           const validation = await validatePlayerVideos(
@@ -712,14 +820,14 @@ const updateUserProfile = async (payload: {
             videoFiles,
             videoTitles || []
           );
-          data.videos = processedVideos;
+          profileData.videos = processedVideos;
         }
         break;
 
       case CandidateRole.OFFICE_STAFF:
         Model = OfficeStaffCan;
         DtoValidator = OfficeStaffCanDto.updateOfficeStaffCanDto;
-        
+
         // Handle staff videos if provided
         if (videoFiles.length > 0) {
           if (!videoMetadata) {
@@ -730,7 +838,7 @@ const updateUserProfile = async (payload: {
             );
           }
           const validation = await validateVideos(
-            data.position,
+            profileData.position || data.position,
             videoMetadata,
             videoFiles
           );
@@ -742,7 +850,7 @@ const updateUserProfile = async (payload: {
             videoFiles,
             videoMetadata
           );
-          data.videos = processedVideos;
+          profileData.videos = processedVideos;
         }
         break;
 
@@ -773,7 +881,8 @@ const updateUserProfile = async (payload: {
 
       case EmployerRole.COLLEGE_UNIVERSITY:
         Model = CollegeOrUniversityEmp;
-        DtoValidator = CollegeOrUniversityEmpDto.updateCollegeOrUniversityEmpDto;
+        DtoValidator =
+          CollegeOrUniversityEmpDto.updateCollegeOrUniversityEmpDto;
         break;
 
       case EmployerRole.CONSULTING_COMPANY:
@@ -804,8 +913,8 @@ const updateUserProfile = async (payload: {
     );
   }
 
-  // Validate data with update DTO
-  validatedData = DtoValidator.parse(data);
+  // Validate profile data with update DTO
+  validatedData = DtoValidator.parse(profileData);
 
   // Update profile in the appropriate model
   const updatedProfile = await Model.findByIdAndUpdate(
@@ -815,10 +924,7 @@ const updateUserProfile = async (payload: {
   );
 
   if (!updatedProfile) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "Profile not found"
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "Profile not found");
   }
 
   // Update profile image if provided
@@ -827,16 +933,31 @@ const updateUserProfile = async (payload: {
     if (user.profileImage) {
       unlinkFileSync(user.profileImage);
     }
-    
-    await User.findByIdAndUpdate(
-      userId,
-      { profileImage },
-      { new: true }
-    );
+    userUpdateData.profileImage = profileImage;
   }
 
-  // Get updated user
+  // Update banner image if provided
+  if (bannerImage) {
+    // Delete old banner image if exists
+    if (user.bannerImage) {
+      unlinkFileSync(user.bannerImage);
+    }
+    userUpdateData.bannerImage = bannerImage;
+  }
+
+  // Update user if there are changes
+  if (Object.keys(userUpdateData).length > 0) {
+    const result = await User.findByIdAndUpdate(userId, userUpdateData, { new: true });
+    if (!result) {
+      throw new AppError(StatusCodes.NOT_FOUND, "User not found during update");
+    }
+  }
+
+  // Get final updated user
   const updatedUser = await User.findById(userId);
+  if (!updatedUser) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
 
   return {
     user: updatedUser,
@@ -852,7 +973,8 @@ const updateProfileVideo = async (payload: {
   videoCategory?: string;
   position?: string;
 }) => {
-  const { userId, videoIndex, videoFile, videoTitle, videoCategory, position } = payload;
+  const { userId, videoIndex, videoFile, videoTitle, videoCategory, position } =
+    payload;
 
   // Check if user exists
   const user = await User.findById(userId);
@@ -862,10 +984,7 @@ const updateProfileVideo = async (payload: {
 
   // Check if user has a profile
   if (!user.profileId) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "User does not have a profile"
-    );
+    throw new AppError(StatusCodes.BAD_REQUEST, "User does not have a profile");
   }
 
   let Model: any;
@@ -918,28 +1037,32 @@ const updateProfileVideo = async (payload: {
     await cleanupUploadedFiles([videoFile]);
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      `Video index ${videoIndex} does not exist. Profile has ${profile.videos?.length || 0} videos`
+      `Video index ${videoIndex} does not exist. Profile has ${
+        profile.videos?.length || 0
+      } videos`
     );
   }
 
   // Get the old video to delete
   const oldVideo = profile.videos[videoIndex];
-  
+
   // Process the new video
   let newVideoData: any;
-  
+
   if (isStaff) {
     // Staff video processing
     if (!videoTitle) {
       await cleanupUploadedFiles([videoFile]);
       throw new AppError(StatusCodes.BAD_REQUEST, "Video title is required");
     }
-    
-    const videoMeta = [{
-      type: (videoCategory || oldVideo.videoType) as VideoType,
-      title: videoTitle,
-    }];
-    
+
+    const videoMeta = [
+      {
+        type: (videoCategory || oldVideo.videoType) as VideoType,
+        title: videoTitle,
+      },
+    ];
+
     const processedVideos = await processVideos([videoFile], videoMeta);
     newVideoData = processedVideos[0];
   } else {
@@ -956,7 +1079,7 @@ const updateProfileVideo = async (payload: {
 
   // Update the video at the specified index
   profile.videos[videoIndex] = newVideoData;
-  
+
   // Save the updated profile
   await profile.save();
 
@@ -984,10 +1107,7 @@ const addProfileVideo = async (payload: {
 
   // Check if user has a profile
   if (!user.profileId) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "User does not have a profile"
-    );
+    throw new AppError(StatusCodes.BAD_REQUEST, "User does not have a profile");
   }
 
   let Model: any;
@@ -1037,7 +1157,7 @@ const addProfileVideo = async (payload: {
 
   // Process the new video
   let newVideoData: any;
-  
+
   if (isStaff) {
     // Staff video processing
     if (!videoTitle || !videoCategory) {
@@ -1047,12 +1167,14 @@ const addProfileVideo = async (payload: {
         "Video title and category are required for staff"
       );
     }
-    
-    const videoMeta = [{
-      type: videoCategory as VideoType,
-      title: videoTitle,
-    }];
-    
+
+    const videoMeta = [
+      {
+        type: videoCategory as VideoType,
+        title: videoTitle,
+      },
+    ];
+
     const processedVideos = await processVideos([videoFile], videoMeta);
     newVideoData = processedVideos[0];
   } else {
@@ -1061,7 +1183,7 @@ const addProfileVideo = async (payload: {
       await cleanupUploadedFiles([videoFile]);
       throw new AppError(StatusCodes.BAD_REQUEST, "Video title is required");
     }
-    
+
     const titles = [videoTitle];
     const processedVideos = await processPlayerVideos([videoFile], titles);
     newVideoData = processedVideos[0];
@@ -1078,7 +1200,7 @@ const addProfileVideo = async (payload: {
 
   // Replace all videos with the new video
   profile.videos = [newVideoData];
-  
+
   // Save the updated profile
   await profile.save();
 
@@ -1103,10 +1225,7 @@ const deleteProfileVideo = async (payload: {
 
   // Check if user has a profile
   if (!user.profileId) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "User does not have a profile"
-    );
+    throw new AppError(StatusCodes.BAD_REQUEST, "User does not have a profile");
   }
 
   let Model: any;
@@ -1155,13 +1274,15 @@ const deleteProfileVideo = async (payload: {
   if (!profile.videos || videoIndex >= profile.videos.length) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      `Video index ${videoIndex} does not exist. Profile has ${profile.videos?.length || 0} videos`
+      `Video index ${videoIndex} does not exist. Profile has ${
+        profile.videos?.length || 0
+      } videos`
     );
   }
 
   // Get the video to delete
   const videoToDelete = profile.videos[videoIndex];
-  
+
   // Delete video file from filesystem
   if (videoToDelete.url) {
     unlinkFileSync(videoToDelete.url);
@@ -1169,7 +1290,7 @@ const deleteProfileVideo = async (payload: {
 
   // Remove the video from the array
   profile.videos.splice(videoIndex, 1);
-  
+
   // Save the updated profile
   await profile.save();
 

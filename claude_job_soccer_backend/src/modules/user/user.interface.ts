@@ -28,6 +28,7 @@ export type TBaseUser = {
   email: string;
   role: CandidateRole | EmployerRole;
   profileImage?: string;
+  bannerImage?: string;
   profileId: string;
   userType: UserType;
   isVerified: boolean;
