@@ -21,7 +21,7 @@ router.get("/search", optionalAuth, CandidateController.searchCandidates);
  * GET /api/v1/candidates/featured
  * Get featured candidates grouped by category
  * Returns max 4 candidates per category
- * Response format: 
+ * Response format:
  * {
  *   "ProfessionalPlayer": [{...}, {...}],
  *   "AmateurPlayer": [{...}, {...}],
@@ -31,7 +31,11 @@ router.get("/search", optionalAuth, CandidateController.searchCandidates);
  *   "OfficeStaff": [{...}, {...}]
  * }
  */
-router.get("/featured", optionalAuth,CandidateController.getFeaturedCandidates);
+router.get(
+  "/featured",
+  optionalAuth,
+  CandidateController.getFeaturedCandidates
+);
 
 /**
  * GET /api/v1/candidates/:id

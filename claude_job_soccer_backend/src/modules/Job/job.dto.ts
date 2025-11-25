@@ -25,7 +25,7 @@ const createJobDto = z.object({
       message: "Invalid candidate role for job category",
     }),
     position: z.string().min(2, "Position is required"),
-    contractType: z.enum(["FullTime", "PartTime"]),
+    contractType: z.enum(["FullTime", "PartTime","Contract"]),
     salary: z
       .object({
         min: z.number().min(0, "Minimum salary must be non-negative"),
@@ -83,7 +83,7 @@ const updateJobDto = z.object({
       message: "Invalid candidate role for job category",
     }).optional(),
     position: z.string().min(2).optional(),
-    contractType: z.enum(["FullTime", "PartTime"]).optional(),
+    contractType: z.enum(["FullTime", "PartTime","Contract"]).optional(),
     salary: z
       .object({
         min: z.number().min(0).optional(),
@@ -123,7 +123,7 @@ const getAllJobsDto = z.object({
     ] as const).optional(),
     location: z.string().optional(),
     country: z.string().optional(),
-    contractType: z.enum(["FullTime", "PartTime"]).optional(),
+    contractType: z.enum(["FullTime", "PartTime","Contract"]).optional(),
     position: z.string().optional(),
     experience: z.enum(["Entry Level", "Intermediate", "Mid-Level", "Mid-Senior", "Senior"]).optional(),
     minSalary: z.string().optional(),

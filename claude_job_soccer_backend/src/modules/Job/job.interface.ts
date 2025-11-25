@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { CandidateRole, EmployerRole } from "../user/user.interface";
 
-export type ContractType = "FullTime" | "PartTime";
+export type ContractType = "FullTime" | "PartTime"| "Contract";
 export type JobStatus = "active" | "closed" | "draft" | "expired";
 export type ExperienceLevel = "Entry Level" | "Intermediate" | "Mid-Level" | "Mid-Senior" | "Senior";
 

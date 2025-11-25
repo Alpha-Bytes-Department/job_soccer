@@ -8,7 +8,7 @@ import validateRequest from "../../shared/middlewares/validateRequest";
 const router = express.Router();
 
 /**
- * GET /api/v1/users
+ * GET /api/v1/user
  * Get all users with pagination and filtering
  * Query params:
  *   - page: number (default: 1)
@@ -19,7 +19,7 @@ const router = express.Router();
 router.get("/", UserController.getAllUsers);
 
 /**
- * GET /api/v1/users/me
+ * GET /api/v1/user/me
  * Get the authenticated user's profile
  * Auth: Required
  * Response: User object with full profile details
@@ -27,7 +27,7 @@ router.get("/", UserController.getAllUsers);
 router.get("/me", auth(), UserController.getMe);
 
 /**
- * GET /api/v1/users/:id
+ * GET /api/v1/user/:id
  * Get a specific user by ID
  * Params:
  *   - id: string (required) - The ID of the user
@@ -36,12 +36,12 @@ router.get("/me", auth(), UserController.getMe);
 router.get("/:id", UserController.getUserById);
 
 /**
- * POST /api/v1/users/profile
- * Create or update user profile with media files
+ * POST /api/v1/user/profile
+ * Create user profile with media files
  * Supports file uploads for profile images and videos
  * Auth: Required
  * Body: Multipart form data with user profile fields and media files
- * Response: Created/updated user profile object
+ * Response: Created user profile object
  */
 router.post(
   "/profile",
@@ -51,7 +51,70 @@ router.post(
 );
 
 /**
- * PATCH /api/v1/users/:id
+ * PATCH /api/v1/user/profile
+ * Update user profile with media files
+ * Supports file uploads for profile images and videos
+ * Auth: Required
+ * Body: Multipart form data with user profile fields and media files
+ * Response: Updated user profile object
+ */
+router.patch(
+  "/profile",
+  auth(),
+  fileUploadHandler,
+  UserController.updateUserProfile
+);
+
+/**
+ * PATCH /api/v1/user/profile/video/:videoIndex
+ * Update a specific video by its index
+ * Auth: Required
+ * Params:
+ *   - videoIndex: number (required) - The index of the video to update (0-based)
+ * Body: Multipart form data with video file and metadata
+ *   For Players: { videoTitle: string }
+ *   For Staff: { videoTitle: string, videoCategory: string, position: string }
+ * Response: Updated profile with modified video
+ */
+router.patch(
+  "/profile/video/:videoIndex",
+  auth(),
+  fileUploadHandler,
+  UserController.updateProfileVideo
+);
+
+/**
+ * POST /api/v1/user/profile/video
+ * Add a new video to user profile
+ * Auth: Required
+ * Body: Multipart form data with video file and metadata
+ *   For Players: { videoTitle: string }
+ *   For Staff: { videoTitle: string, videoCategory: string, position: string }
+ * Response: Updated profile with new video added
+ */
+router.post(
+  "/profile/video",
+  auth(),
+  fileUploadHandler,
+  UserController.addProfileVideo
+);
+
+/**
+ * DELETE /api/v1/user/profile/video/:videoIndex
+ * Delete a specific video by its index
+ * Auth: Required
+ * Params:
+ *   - videoIndex: number (required) - The index of the video to delete (0-based)
+ * Response: Updated profile with video removed
+ */
+router.delete(
+  "/profile/video/:videoIndex",
+  auth(),
+  UserController.deleteProfileVideo
+);
+
+/**
+ * PATCH /api/v1/user/:id
  * Update user information
  * Supports file uploads for profile images and videos
  * Params:
@@ -67,7 +130,7 @@ router.patch(
 );
 
 /**
- * PATCH /api/v1/users/:id/status
+ * PATCH /api/v1/user/:id/status
  * Update user activation status (active/inactive)
  * Params:
  *   - id: string (required) - The ID of the user
@@ -82,7 +145,7 @@ router.patch(
 );
 
 /**
- * PATCH /api/v1/users/:id/role
+ * PATCH /api/v1/user/:id/role
  * Update user role (candidate/employer)
  * Params:
  *   - id: string (required) - The ID of the user

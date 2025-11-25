@@ -51,7 +51,7 @@ const jobSchema = new Schema<IJob>(
     },
     contractType: {
       type: String,
-      enum: ["FullTime", "PartTime"],
+      enum: ["FullTime", "PartTime","Contract"],
       required: true,
       index: true, // Filter by contract type
     },

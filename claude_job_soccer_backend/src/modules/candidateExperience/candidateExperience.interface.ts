@@ -7,7 +7,7 @@ export type TCandidateExperience = {
   profileId: string; // The actual candidate profile ID
   candidateRole: string;
   title: string;
-  employmentType: "FullTime" | "PartTime";
+  employmentType: "FullTime" | "PartTime" | "Contract";
   club: string;
   location: string;
   isCurrentlyWorking: boolean;

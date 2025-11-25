@@ -26,7 +26,7 @@ const router = express.Router();
  *   - location: string (e.g., "New York", "London")
  *   - country: string (e.g., "USA", "UK")
  *   - position: string (e.g., "Striker", "Midfielder")
- *   - contractType: "FullTime" | "PartTime"
+ *   - contractType: "FullTime" | "PartTime | "Contract"
  *   - status: "active" | "closed" | "draft" | "expired" (default: "active")
  *   - creatorRole: string (employer type, e.g., "ProfessionalClub", "Academy")
  *   - creatorId: string (specific employer's ObjectId)

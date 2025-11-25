@@ -12,7 +12,7 @@ const trackProfileView = catchAsync(async (req: Request, res: Response) => {
   const viewer = req.user;
 
   const result = await ProfileViewService.trackProfileView(
-    viewer!._id,
+    viewer!.id,
     viewer!.userType as "candidate" | "employer",
     viewer!.role!,
     profileOwnerId
@@ -30,7 +30,7 @@ const trackProfileView = catchAsync(async (req: Request, res: Response) => {
  * Get profile views for authenticated user (who viewed my profile)
  */
 const getMyProfileViews = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user!._id;
+  const userId = req.user!.id;
   const { days, page, limit } = req.query;
 
   const result = await ProfileViewService.getWhoViewedMyProfile(userId, {
@@ -56,7 +56,7 @@ const getMyProfileViews = catchAsync(async (req: Request, res: Response) => {
  */
 const getMyProfileViewStats = catchAsync(
   async (req: Request, res: Response) => {
-    const userId = req.user!._id;
+    const userId = req.user!.id;
 
     const result = await ProfileViewService.getProfileViewStats(userId);
 

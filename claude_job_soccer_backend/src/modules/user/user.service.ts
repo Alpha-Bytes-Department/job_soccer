@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import { User } from "./user.model";
 import { CandidateRole, EmployerRole } from "./user.interface";
+import { VideoType } from "../../shared/constant/video.constant";
 
 import { QueryBuilder } from "../../shared/builder/QueryBuilder";
 import { unlinkFileSync } from "../../shared/util/unlinkFile";
@@ -566,6 +567,619 @@ const addUserProfile = async (payload: {
   };
 };
 
+const updateUserProfile = async (payload: {
+  userId: string;
+  data: any;
+  profileImage?: string | null;
+  videoFiles?: Express.Multer.File[];
+  videoMetadata?: any[];
+  videoTitles?: string[];
+}) => {
+  const { userId, data, profileImage, videoFiles = [], videoMetadata, videoTitles } = payload;
+
+  // Check if user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  // Check if user has a profile to update
+  if (!user.profileId) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "User does not have a profile. Use create profile instead."
+    );
+  }
+
+  let validatedData: any;
+  let Model: any;
+  let DtoValidator: any;
+
+  // Handle Candidate Profiles
+  if (user.userType === "candidate") {
+    switch (user.role) {
+      case CandidateRole.AMATEUR_PLAYER:
+        Model = AmateurPlayerCan;
+        DtoValidator = AmateurPlayerCanDto.updateAmateurPlayerCanDto;
+        
+        // Handle player videos if provided
+        if (videoFiles.length > 0) {
+          const validation = await validatePlayerVideos(
+            videoFiles,
+            "Amateur Player"
+          );
+          if (!validation.isValid) {
+            await cleanupUploadedFiles(videoFiles);
+            throw new AppError(StatusCodes.BAD_REQUEST, validation.error!);
+          }
+          const processedVideos = await processPlayerVideos(
+            videoFiles,
+            videoTitles || []
+          );
+          data.videos = processedVideos;
+        }
+        break;
+
+      case CandidateRole.PROFESSIONAL_PLAYER:
+        Model = ProfessionalPlayerCan;
+        DtoValidator = ProfessionalPlayerCanDto.updateProfessionalPlayerCanDto;
+        
+        // Handle player videos if provided
+        if (videoFiles.length > 0) {
+          const validation = await validatePlayerVideos(
+            videoFiles,
+            "Professional Player"
+          );
+          if (!validation.isValid) {
+            await cleanupUploadedFiles(videoFiles);
+            throw new AppError(StatusCodes.BAD_REQUEST, validation.error!);
+          }
+          const processedVideos = await processPlayerVideos(
+            videoFiles,
+            videoTitles || []
+          );
+          data.videos = processedVideos;
+        }
+        break;
+
+      case CandidateRole.ON_FIELD_STAFF:
+        Model = OnFieldStaffCan;
+        DtoValidator = OnFieldStaffCanDto.updateOnFieldStaffCanDto;
+        
+        // Handle staff videos if provided
+        if (videoFiles.length > 0) {
+          if (!videoMetadata) {
+            await cleanupUploadedFiles(videoFiles);
+            throw new AppError(
+              StatusCodes.BAD_REQUEST,
+              "Video metadata (videoMeta) is required for staff profiles"
+            );
+          }
+          const validation = await validateVideos(
+            data.position,
+            videoMetadata,
+            videoFiles
+          );
+          if (!validation.isValid) {
+            await cleanupUploadedFiles(videoFiles);
+            throw new AppError(StatusCodes.BAD_REQUEST, validation.error!);
+          }
+          const processedVideos = await processVideos(
+            videoFiles,
+            videoMetadata
+          );
+          data.videos = processedVideos;
+        }
+        break;
+
+      case CandidateRole.HIGH_SCHOOL:
+        Model = HighSchoolCan;
+        DtoValidator = HighSchoolCanDto.updateHighSchoolCanDto;
+        
+        // Handle player videos if provided
+        if (videoFiles.length > 0) {
+          const validation = await validatePlayerVideos(
+            videoFiles,
+            "High School"
+          );
+          if (!validation.isValid) {
+            await cleanupUploadedFiles(videoFiles);
+            throw new AppError(StatusCodes.BAD_REQUEST, validation.error!);
+          }
+          const processedVideos = await processPlayerVideos(
+            videoFiles,
+            videoTitles || []
+          );
+          data.videos = processedVideos;
+        }
+        break;
+
+      case CandidateRole.COLLEGE_UNIVERSITY:
+        Model = CollegeOrUniversity;
+        DtoValidator = CollegeOrUniversityCanDto.updateCollegeOrUniversityCanDto;
+        
+        // Handle player videos if provided
+        if (videoFiles.length > 0) {
+          const validation = await validatePlayerVideos(
+            videoFiles,
+            "College/University"
+          );
+          if (!validation.isValid) {
+            await cleanupUploadedFiles(videoFiles);
+            throw new AppError(StatusCodes.BAD_REQUEST, validation.error!);
+          }
+          const processedVideos = await processPlayerVideos(
+            videoFiles,
+            videoTitles || []
+          );
+          data.videos = processedVideos;
+        }
+        break;
+
+      case CandidateRole.OFFICE_STAFF:
+        Model = OfficeStaffCan;
+        DtoValidator = OfficeStaffCanDto.updateOfficeStaffCanDto;
+        
+        // Handle staff videos if provided
+        if (videoFiles.length > 0) {
+          if (!videoMetadata) {
+            await cleanupUploadedFiles(videoFiles);
+            throw new AppError(
+              StatusCodes.BAD_REQUEST,
+              "Video metadata (videoMeta) is required for staff profiles"
+            );
+          }
+          const validation = await validateVideos(
+            data.position,
+            videoMetadata,
+            videoFiles
+          );
+          if (!validation.isValid) {
+            await cleanupUploadedFiles(videoFiles);
+            throw new AppError(StatusCodes.BAD_REQUEST, validation.error!);
+          }
+          const processedVideos = await processVideos(
+            videoFiles,
+            videoMetadata
+          );
+          data.videos = processedVideos;
+        }
+        break;
+
+      default:
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          `Invalid candidate role: ${user.role}`
+        );
+    }
+  }
+  // Handle Employer Profiles
+  else if (user.userType === "employer") {
+    switch (user.role) {
+      case EmployerRole.ACADEMY:
+        Model = AcademyEmp;
+        DtoValidator = AcademyEmpDto.updateAcademyEmpDto;
+        break;
+
+      case EmployerRole.AGENT:
+        Model = AgentEmp;
+        DtoValidator = AgentEmpDto.updateAgentEmpDto;
+        break;
+
+      case EmployerRole.AMATEUR_CLUB:
+        Model = AmateurClubEmp;
+        DtoValidator = AmateurClubEmpDto.updateAmateurClubEmpDto;
+        break;
+
+      case EmployerRole.COLLEGE_UNIVERSITY:
+        Model = CollegeOrUniversityEmp;
+        DtoValidator = CollegeOrUniversityEmpDto.updateCollegeOrUniversityEmpDto;
+        break;
+
+      case EmployerRole.CONSULTING_COMPANY:
+        Model = ConsultingCompanyEmp;
+        DtoValidator = ConsultingCompanyEmpDto.updateConsultingCompanyEmpDto;
+        break;
+
+      case EmployerRole.HIGH_SCHOOL:
+        Model = HighSchoolEmp;
+        DtoValidator = HighSchoolEmpDto.updateHighSchoolEmpDto;
+        break;
+
+      case EmployerRole.PROFESSIONAL_CLUB:
+        Model = ProfessionalClubEmp;
+        DtoValidator = ProfessionalClubEmpDto.updateProfessionalClubEmpDto;
+        break;
+
+      default:
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          `Invalid employer role: ${user.role}`
+        );
+    }
+  } else {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Admin users cannot have profiles"
+    );
+  }
+
+  // Validate data with update DTO
+  validatedData = DtoValidator.parse(data);
+
+  // Update profile in the appropriate model
+  const updatedProfile = await Model.findByIdAndUpdate(
+    user.profileId,
+    validatedData,
+    { new: true, runValidators: true }
+  );
+
+  if (!updatedProfile) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Profile not found"
+    );
+  }
+
+  // Update profile image if provided
+  if (profileImage) {
+    // Delete old profile image if exists
+    if (user.profileImage) {
+      unlinkFileSync(user.profileImage);
+    }
+    
+    await User.findByIdAndUpdate(
+      userId,
+      { profileImage },
+      { new: true }
+    );
+  }
+
+  // Get updated user
+  const updatedUser = await User.findById(userId);
+
+  return {
+    user: updatedUser,
+    profile: updatedProfile,
+  };
+};
+
+const updateProfileVideo = async (payload: {
+  userId: string;
+  videoIndex: number;
+  videoFile: Express.Multer.File;
+  videoTitle?: string;
+  videoCategory?: string;
+  position?: string;
+}) => {
+  const { userId, videoIndex, videoFile, videoTitle, videoCategory, position } = payload;
+
+  // Check if user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  // Check if user has a profile
+  if (!user.profileId) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "User does not have a profile"
+    );
+  }
+
+  let Model: any;
+  let isStaff = false;
+
+  // Determine the model based on user role
+  if (user.userType === "candidate") {
+    switch (user.role) {
+      case CandidateRole.AMATEUR_PLAYER:
+        Model = AmateurPlayerCan;
+        break;
+      case CandidateRole.PROFESSIONAL_PLAYER:
+        Model = ProfessionalPlayerCan;
+        break;
+      case CandidateRole.ON_FIELD_STAFF:
+        Model = OnFieldStaffCan;
+        isStaff = true;
+        break;
+      case CandidateRole.HIGH_SCHOOL:
+        Model = HighSchoolCan;
+        break;
+      case CandidateRole.COLLEGE_UNIVERSITY:
+        Model = CollegeOrUniversity;
+        break;
+      case CandidateRole.OFFICE_STAFF:
+        Model = OfficeStaffCan;
+        isStaff = true;
+        break;
+      default:
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          `Invalid candidate role: ${user.role}`
+        );
+    }
+  } else {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Only candidates can have videos"
+    );
+  }
+
+  // Get current profile
+  const profile = await Model.findById(user.profileId);
+  if (!profile) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Profile not found");
+  }
+
+  // Check if video index is valid
+  if (!profile.videos || videoIndex >= profile.videos.length) {
+    await cleanupUploadedFiles([videoFile]);
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      `Video index ${videoIndex} does not exist. Profile has ${profile.videos?.length || 0} videos`
+    );
+  }
+
+  // Get the old video to delete
+  const oldVideo = profile.videos[videoIndex];
+  
+  // Process the new video
+  let newVideoData: any;
+  
+  if (isStaff) {
+    // Staff video processing
+    if (!videoTitle) {
+      await cleanupUploadedFiles([videoFile]);
+      throw new AppError(StatusCodes.BAD_REQUEST, "Video title is required");
+    }
+    
+    const videoMeta = [{
+      type: (videoCategory || oldVideo.videoType) as VideoType,
+      title: videoTitle,
+    }];
+    
+    const processedVideos = await processVideos([videoFile], videoMeta);
+    newVideoData = processedVideos[0];
+  } else {
+    // Player video processing
+    const titles = [videoTitle || oldVideo.title || "Video"];
+    const processedVideos = await processPlayerVideos([videoFile], titles);
+    newVideoData = processedVideos[0];
+  }
+
+  // Delete old video file
+  if (oldVideo.url) {
+    unlinkFileSync(oldVideo.url);
+  }
+
+  // Update the video at the specified index
+  profile.videos[videoIndex] = newVideoData;
+  
+  // Save the updated profile
+  await profile.save();
+
+  return {
+    profile,
+    videoIndex,
+    updatedVideo: newVideoData,
+  };
+};
+
+const addProfileVideo = async (payload: {
+  userId: string;
+  videoFile: Express.Multer.File;
+  videoTitle?: string;
+  videoCategory?: string;
+  position?: string;
+}) => {
+  const { userId, videoFile, videoTitle, videoCategory, position } = payload;
+
+  // Check if user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  // Check if user has a profile
+  if (!user.profileId) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "User does not have a profile"
+    );
+  }
+
+  let Model: any;
+  let isStaff = false;
+
+  // Determine the model based on user role
+  if (user.userType === "candidate") {
+    switch (user.role) {
+      case CandidateRole.AMATEUR_PLAYER:
+        Model = AmateurPlayerCan;
+        break;
+      case CandidateRole.PROFESSIONAL_PLAYER:
+        Model = ProfessionalPlayerCan;
+        break;
+      case CandidateRole.ON_FIELD_STAFF:
+        Model = OnFieldStaffCan;
+        isStaff = true;
+        break;
+      case CandidateRole.HIGH_SCHOOL:
+        Model = HighSchoolCan;
+        break;
+      case CandidateRole.COLLEGE_UNIVERSITY:
+        Model = CollegeOrUniversity;
+        break;
+      case CandidateRole.OFFICE_STAFF:
+        Model = OfficeStaffCan;
+        isStaff = true;
+        break;
+      default:
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          `Invalid candidate role: ${user.role}`
+        );
+    }
+  } else {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Only candidates can have videos"
+    );
+  }
+
+  // Get current profile
+  const profile = await Model.findById(user.profileId);
+  if (!profile) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Profile not found");
+  }
+
+  // Process the new video
+  let newVideoData: any;
+  
+  if (isStaff) {
+    // Staff video processing
+    if (!videoTitle || !videoCategory) {
+      await cleanupUploadedFiles([videoFile]);
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "Video title and category are required for staff"
+      );
+    }
+    
+    const videoMeta = [{
+      type: videoCategory as VideoType,
+      title: videoTitle,
+    }];
+    
+    const processedVideos = await processVideos([videoFile], videoMeta);
+    newVideoData = processedVideos[0];
+  } else {
+    // Player video processing
+    if (!videoTitle) {
+      await cleanupUploadedFiles([videoFile]);
+      throw new AppError(StatusCodes.BAD_REQUEST, "Video title is required");
+    }
+    
+    const titles = [videoTitle];
+    const processedVideos = await processPlayerVideos([videoFile], titles);
+    newVideoData = processedVideos[0];
+  }
+
+  // Delete old videos from filesystem
+  if (profile.videos && profile.videos.length > 0) {
+    profile.videos.forEach((video: any) => {
+      if (video.url) {
+        unlinkFileSync(video.url);
+      }
+    });
+  }
+
+  // Replace all videos with the new video
+  profile.videos = [newVideoData];
+  
+  // Save the updated profile
+  await profile.save();
+
+  return {
+    profile,
+    newVideo: newVideoData,
+    totalVideos: profile.videos.length,
+  };
+};
+
+const deleteProfileVideo = async (payload: {
+  userId: string;
+  videoIndex: number;
+}) => {
+  const { userId, videoIndex } = payload;
+
+  // Check if user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  // Check if user has a profile
+  if (!user.profileId) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "User does not have a profile"
+    );
+  }
+
+  let Model: any;
+
+  // Determine the model based on user role
+  if (user.userType === "candidate") {
+    switch (user.role) {
+      case CandidateRole.AMATEUR_PLAYER:
+        Model = AmateurPlayerCan;
+        break;
+      case CandidateRole.PROFESSIONAL_PLAYER:
+        Model = ProfessionalPlayerCan;
+        break;
+      case CandidateRole.ON_FIELD_STAFF:
+        Model = OnFieldStaffCan;
+        break;
+      case CandidateRole.HIGH_SCHOOL:
+        Model = HighSchoolCan;
+        break;
+      case CandidateRole.COLLEGE_UNIVERSITY:
+        Model = CollegeOrUniversity;
+        break;
+      case CandidateRole.OFFICE_STAFF:
+        Model = OfficeStaffCan;
+        break;
+      default:
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          `Invalid candidate role: ${user.role}`
+        );
+    }
+  } else {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Only candidates can have videos"
+    );
+  }
+
+  // Get current profile
+  const profile = await Model.findById(user.profileId);
+  if (!profile) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Profile not found");
+  }
+
+  // Check if video index is valid
+  if (!profile.videos || videoIndex >= profile.videos.length) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      `Video index ${videoIndex} does not exist. Profile has ${profile.videos?.length || 0} videos`
+    );
+  }
+
+  // Get the video to delete
+  const videoToDelete = profile.videos[videoIndex];
+  
+  // Delete video file from filesystem
+  if (videoToDelete.url) {
+    unlinkFileSync(videoToDelete.url);
+  }
+
+  // Remove the video from the array
+  profile.videos.splice(videoIndex, 1);
+  
+  // Save the updated profile
+  await profile.save();
+
+  return {
+    profile,
+    deletedVideoIndex: videoIndex,
+    remainingVideos: profile.videos.length,
+  };
+};
+
 export const UserServices = {
   getAllUsers,
   getUserById,
@@ -574,4 +1188,8 @@ export const UserServices = {
   updateUserRole,
   getMe,
   addUserProfile,
+  updateUserProfile,
+  updateProfileVideo,
+  addProfileVideo,
+  deleteProfileVideo,
 };

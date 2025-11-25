@@ -25,7 +25,7 @@ const candidateExperienceSchema = new Schema<TCandidateExperience>(
     },
     employmentType: {
       type: String,
-      enum: ["FullTime", "PartTime"],
+      enum: ["FullTime", "PartTime", "Contract"],
       required: true,
     },
     club: {

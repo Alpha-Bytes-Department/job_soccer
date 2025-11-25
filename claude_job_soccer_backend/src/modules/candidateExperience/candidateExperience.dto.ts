@@ -3,8 +3,8 @@ import { z } from "zod";
 export const addExperienceSchema = z.object({
   body: z.object({
     title: z.string().min(1, "Title is required"),
-    employmentType: z.enum(["FullTime", "PartTime"], {
-      message: "Employment type must be FullTime or PartTime",
+    employmentType: z.enum(["FullTime", "PartTime","Contract"], {
+      message: "Employment type must be FullTime or PartTime or Contract",
     }),
     club: z.string().min(1, "Club name is required"),
     location: z.string().min(1, "Location is required"),
@@ -37,8 +37,8 @@ export const updateExperienceSchema = z.object({
   }),
   body: z.object({
     title: z.string().min(1, "Title is required").optional(),
-    employmentType: z.enum(["FullTime", "PartTime"], {
-      message: "Employment type must be FullTime or PartTime",
+    employmentType: z.enum(["FullTime", "PartTime","Contract"], {
+      message: "Employment type must be FullTime or PartTime or Contract",
     }).optional(),
     club: z.string().min(1, "Club name is required").optional(),
     location: z.string().min(1, "Location is required").optional(),
