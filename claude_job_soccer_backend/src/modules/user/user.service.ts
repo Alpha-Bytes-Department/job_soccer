@@ -53,6 +53,8 @@ import { ProfessionalClubEmp } from "../employer/professionalClubEmp/professiona
 import { CandidateEducationService } from "../candidateEducation/candidateEducation.service";
 import { CandidateExperienceService } from "../candidateExperience/candidateExperience.service";
 import { CandidateLicensesAndCertificationService } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.service";
+import { AdminVerification } from "../adminVerification/adminVerification.model";
+import { AdminVerificationService } from "../adminVerification/adminVerification.service";
 
 const getAllUsers = async (query: Record<string, unknown>) => {
   const userQuery = new QueryBuilder(User.find(), query)
@@ -301,6 +303,7 @@ const getMe = async (userId: string): Promise<any> => {
     await CandidateLicensesAndCertificationService.getAllLicensesAndCertificationsByUser(
       userId
     );
+  const adminVerificationStatus = await AdminVerificationService.getUserVerificationStatus(userId);
 
   return {
     ...user,
@@ -309,6 +312,7 @@ const getMe = async (userId: string): Promise<any> => {
     experiences,
     certifications,
     subscription: subscriptionInfo,
+    adminVerificationStatus: adminVerificationStatus,
   };
 };
 
@@ -681,7 +685,7 @@ const updateUserProfile = async (payload: {
   }
 
   // Separate user fields from profile fields
-  const userFields = ['firstName', 'lastName'];
+  const userFields = ["firstName", "lastName"];
   const userUpdateData: any = {};
   const profileData: any = { ...data }; // Copy all data to profileData first
 
@@ -947,7 +951,9 @@ const updateUserProfile = async (payload: {
 
   // Update user if there are changes
   if (Object.keys(userUpdateData).length > 0) {
-    const result = await User.findByIdAndUpdate(userId, userUpdateData, { new: true });
+    const result = await User.findByIdAndUpdate(userId, userUpdateData, {
+      new: true,
+    });
     if (!result) {
       throw new AppError(StatusCodes.NOT_FOUND, "User not found during update");
     }

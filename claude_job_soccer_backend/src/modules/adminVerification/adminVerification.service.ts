@@ -8,6 +8,7 @@ import { CandidateEducation } from "../candidateEducation/candidateEducation.mod
 import { CandidateExperience } from "../candidateExperience/candidateExperience.model";
 import { CandidateLicenseAndCertification } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.model";
 import { QueryBuilder } from "../../shared/builder/QueryBuilder";
+import { adminVerificationCache } from "./adminVerification.cache";
 
 /**
  * Request verification for a user (candidate or employer)
@@ -52,6 +53,9 @@ const requestVerification = async (userId: string): Promise<TAdminVerification> 
     userType: user.userType,
     status: VerificationStatus.PENDING,
   });
+
+  // Invalidate cache after creating new request
+  await adminVerificationCache.invalidateUserCache(userId);
 
   return verificationRequest;
 };
@@ -171,6 +175,10 @@ const updateVerificationStatus = async (
     await User.findByIdAndUpdate(verification.userId, { isVerified: true });
   }
 
+  // Invalidate cache after updating status
+  await adminVerificationCache.invalidateUserCache(verification.userId.toString());
+  await adminVerificationCache.invalidateVerificationCache(verificationId);
+
   return updatedVerification;
 };
 
@@ -178,22 +186,42 @@ const updateVerificationStatus = async (
  * Get user's verification status
  */
 const getUserVerificationStatus = async (userId: string) => {
+  const cacheKey = adminVerificationCache.getCacheKey.statusByUser(userId);
+
+  // Try to get from cache
+  type VerificationStatusResponse = {
+    hasRequest: boolean;
+    status: string | null;
+    verifiedAt: Date | null | undefined;
+    createdAt?: Date;
+  };
+  const cachedData = await adminVerificationCache.getCache<VerificationStatusResponse>(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
   const verification = await AdminVerification.findOne({ userId });
   
+  let result: VerificationStatusResponse;
   if (!verification) {
-    return {
+    result = {
       hasRequest: false,
       status: null,
       verifiedAt: null,
     };
+  } else {
+    result = {
+      hasRequest: true,
+      status: verification.status,
+      verifiedAt: verification.verifiedAt || null,
+      createdAt: verification.createdAt,
+    };
   }
 
-  return {
-    hasRequest: true,
-    status: verification.status,
-    verifiedAt: verification.verifiedAt,
-    createdAt: verification.createdAt,
-  };
+  // Cache the result
+  await adminVerificationCache.setCache(cacheKey, result, adminVerificationCache.CACHE_TTL);
+
+  return result;
 };
 
 export const AdminVerificationService = {
