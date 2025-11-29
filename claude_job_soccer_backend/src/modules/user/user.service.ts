@@ -138,7 +138,7 @@ const getUserById = async (userId: string) => {
     await CandidateLicensesAndCertificationService.getAllLicensesAndCertificationsByUser(
       userId
     );
-
+  // const 
   return {
     ...user,
     profile,

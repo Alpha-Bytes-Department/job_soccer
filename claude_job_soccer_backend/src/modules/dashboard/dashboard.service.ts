@@ -1,21 +1,41 @@
 import { User } from "../user/user.model";
-import { Subscription } from "../subscription/subscription.model";
 import { PaymentHistory } from "../paymentHistory/paymentHistory.model";
 import mongoose from "mongoose";
+import { CandidateRole, EmployerRole } from "../user/user.interface";
+import { AmateurPlayerCan } from "../candidate/amateurPlayerCan/amateurPlayerCan.model";
+import { ProfessionalPlayerCan } from "../candidate/professionalPlayerCan/professionalPlayerCan.model";
+import { OnFieldStaffCan } from "../candidate/onFieldStaffCan/onFieldStaffCan.model";
+import { OfficeStaffCan } from "../candidate/officeStaffCan/officeStaffCan.model";
+import { HighSchoolCan } from "../candidate/highSchoolCan/highSchoolCan.model";
+import { CollegeOrUniversity } from "../candidate/collegeOrUniversityCan/collegeOrUniversityCan.model";
+import { AcademyEmp } from "../employer/academyEmp/academyEmp.model";
+import { AgentEmp } from "../employer/agentEmp/agentEmp.model";
+import { AmateurClubEmp } from "../employer/amateurClubEmp/amateurClubEmp.model";
+import { CollegeOrUniversityEmp } from "../employer/collegeOrUniversityEmp/collegeOrUniversityEmp.model";
+import { ConsultingCompanyEmp } from "../employer/consultingCompanyEmp/consultingCompanyEmp.model";
+import { HighSchoolEmp } from "../employer/highSchoolEmp/highSchoolEmp.model";
+import { ProfessionalClubEmp } from "../employer/professionalClubEmp/professionalClubEmp.model";
+import { CandidateEducationService } from "../candidateEducation/candidateEducation.service";
+import { CandidateExperienceService } from "../candidateExperience/candidateExperience.service";
+import { CandidateLicensesAndCertificationService } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.service";
+import AppError from "../../errors/AppError";
+import { StatusCodes } from "http-status-codes";
+import { monthNames } from "../../shared/constant/month.constant";
+import { AdminVerification } from "../adminVerification/adminVerification.model";
 
 // Get total users, paid users, and free users count
 const getUserCounts = async () => {
   try {
-    const totalUsers = await User.countDocuments({ 
+    const totalUsers = await User.countDocuments({
       isDeleted: false,
-      userType: { $ne: "admin" }
+      userType: { $ne: "admin" },
     });
 
     // Count users with active subscriptions
     const paidUsers = await User.countDocuments({
       isDeleted: false,
       userType: { $ne: "admin" },
-      activeSubscriptionId: { $exists: true, $ne: null }
+      activeSubscriptionId: { $exists: true, $ne: null },
     });
 
     const unpaidUsers = totalUsers - paidUsers;
@@ -32,14 +52,15 @@ const getUserCounts = async () => {
 };
 
 // Get monthly income for current year (Jan-Dec)
-const getMonthlyIncome = async () => {
+const getMonthlyIncome = async (year?: number) => {
   try {
+    const targetYear = year || new Date().getFullYear();
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth(); // 0-11
 
-    // Get all successful payments for the current year
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
+    // Get all successful payments for the target year
+    const startOfYear = new Date(targetYear, 0, 1);
+    const endOfYear = new Date(targetYear, 11, 31, 23, 59, 59);
 
     const payments = await PaymentHistory.aggregate([
       {
@@ -64,21 +85,19 @@ const getMonthlyIncome = async () => {
 
     // Create array with all 12 months, fill with 0 for future months
     const monthlyIncome = Array(12).fill(0);
-    
+
     payments.forEach((payment) => {
       const monthIndex = payment._id - 1; // Convert to 0-based index
       monthlyIncome[monthIndex] = payment.totalIncome;
     });
 
-    // Set future months to 0
-    for (let i = currentMonth + 1; i < 12; i++) {
-      monthlyIncome[i] = 0;
+    // Set future months to 0 only if it's the current year
+    if (targetYear === currentYear) {
+      for (let i = currentMonth + 1; i < 12; i++) {
+        monthlyIncome[i] = 0;
+      }
     }
 
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
 
     const result = monthNames.map((month, index) => ({
       month,
@@ -100,7 +119,7 @@ const getUserList = async (query: {
   userType?: "candidate" | "employer";
   subscriptionType?: "paid" | "free";
   role?: string;
-    email?: string;
+  email?: string;
 }) => {
   try {
     const page = query.page || 1;
@@ -122,9 +141,9 @@ const getUserList = async (query: {
     if (query.role) {
       matchQuery.role = query.role;
     }
-   if(query.email){
+    if (query.email) {
       matchQuery.email = query.email;
-   }
+    }
     // Search by name or email
     if (query.search) {
       matchQuery.$or = [
@@ -189,26 +208,30 @@ const getUserList = async (query: {
     ]);
 
     // Get total count for pagination
-    const totalQuery = [...Object.entries(matchQuery)
-      .filter(([key]) => key !== "$or")
-      .map(([key, value]) => ({ [key]: value }))];
-    
+    const totalQuery = [
+      ...Object.entries(matchQuery)
+        .filter(([key]) => key !== "$or")
+        .map(([key, value]) => ({ [key]: value })),
+    ];
+
     if (matchQuery.$or) {
       totalQuery.push({ $or: matchQuery.$or });
     }
 
     const totalUsers = await User.countDocuments(
       query.subscriptionType
-        ? { 
+        ? {
             $and: [
               matchQuery,
               query.subscriptionType === "paid"
                 ? { activeSubscriptionId: { $exists: true, $ne: null } }
-                : { $or: [
-                    { activeSubscriptionId: { $exists: false } },
-                    { activeSubscriptionId: null }
-                  ]}
-            ]
+                : {
+                    $or: [
+                      { activeSubscriptionId: { $exists: false } },
+                      { activeSubscriptionId: null },
+                    ],
+                  },
+            ],
           }
         : matchQuery
     );
@@ -230,30 +253,93 @@ const getUserList = async (query: {
 
 // Get user details by ID
 const getUserDetails = async (userId: string) => {
-  try {
-    const user = await User.findById(userId)
-      .populate("activeSubscriptionId")
-      .select("-password")
-      .lean();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // Get payment history
-    const paymentHistory = await PaymentHistory.find({ user: userId })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .lean();
-
-    return {
-      user,
-      paymentHistory,
-    };
-  } catch (error) {
-    console.error("Error in getUserDetails:", error);
-    throw error;
+  const user = await User.findById(userId).lean();
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
+
+  // Fetch profile based on userType and role
+  let profile: any = null;
+
+  if (user.profileId) {
+    if (user.userType === "candidate") {
+      switch (user.role) {
+        case CandidateRole.AMATEUR_PLAYER:
+          profile = await AmateurPlayerCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.PROFESSIONAL_PLAYER:
+          profile = await ProfessionalPlayerCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.ON_FIELD_STAFF:
+          profile = await OnFieldStaffCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.OFFICE_STAFF:
+          profile = await OfficeStaffCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.HIGH_SCHOOL:
+          profile = await HighSchoolCan.findById(user.profileId).lean();
+          break;
+        case CandidateRole.COLLEGE_UNIVERSITY:
+          profile = await CollegeOrUniversity.findById(user.profileId).lean();
+          break;
+      }
+    } else if (user.userType === "employer") {
+      switch (user.role) {
+        case EmployerRole.ACADEMY:
+          profile = await AcademyEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.AGENT:
+          profile = await AgentEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.AMATEUR_CLUB:
+          profile = await AmateurClubEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.COLLEGE_UNIVERSITY:
+          profile = await CollegeOrUniversityEmp.findById(
+            user.profileId
+          ).lean();
+          break;
+        case EmployerRole.CONSULTING_COMPANY:
+          profile = await ConsultingCompanyEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.HIGH_SCHOOL:
+          profile = await HighSchoolEmp.findById(user.profileId).lean();
+          break;
+        case EmployerRole.PROFESSIONAL_CLUB:
+          profile = await ProfessionalClubEmp.findById(user.profileId).lean();
+          break;
+      }
+    }
+  }
+  const educations = await CandidateEducationService.getAllEducationsByUser(
+    userId
+  );
+  const experiences = await CandidateExperienceService.getAllExperiencesByUser(
+    userId
+  );
+  const certifications =
+    await CandidateLicensesAndCertificationService.getAllLicensesAndCertificationsByUser(
+      userId
+    );
+  const userLastPayments = await PaymentHistory.find({
+    user: new mongoose.Types.ObjectId(userId),
+  })
+    .limit(10)
+    .sort({ paidAt: -1 })
+    .lean();
+  const adminVerificationStatus = await AdminVerification.findOne({ userId }).select("status").lean();
+  if (adminVerificationStatus) {
+
+  }
+  return {
+    ...user,
+    profile,
+    educations,
+    experiences,
+    certifications,
+    userLastPayments: userLastPayments || [],
+    adminVerificationStatus: adminVerificationStatus ? adminVerificationStatus.status : null,
+  };
 };
 
 // Get user statistics with growth
@@ -262,7 +348,14 @@ const getUserStatistics = async () => {
     const now = new Date();
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+    const lastMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59
+    );
 
     // Current month counts
     const totalUsers = await User.countDocuments({
@@ -351,7 +444,8 @@ const getPaymentStatistics = async () => {
       },
     ]);
 
-    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+    const totalRevenue =
+      revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
 
     return {
       total: {

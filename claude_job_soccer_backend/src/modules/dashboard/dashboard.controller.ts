@@ -17,7 +17,10 @@ const getUserCounts = catchAsync(async (req: Request, res: Response) => {
 
 // Get monthly income for current year
 const getMonthlyIncome = catchAsync(async (req: Request, res: Response) => {
-  const result = await DashboardService.getMonthlyIncome();
+  const { year } = req.query;
+  const result = await DashboardService.getMonthlyIncome(
+    year ? parseInt(year as string) : undefined
+  );
 
   sendResponse(res, {
     statusCode: 200,

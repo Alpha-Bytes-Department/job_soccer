@@ -27,6 +27,5 @@ PaymentHistorySchema.index({ user: 1, createdAt: -1 });
 PaymentHistorySchema.index({ stripeCustomerId: 1 });
 PaymentHistorySchema.index({ status: 1 });
 PaymentHistorySchema.index({ paidAt: 1 });
-PaymentHistorySchema.index({ stripePaymentIntentId: 1 });
 
 export const PaymentHistory = model<IPaymentHistory>("PaymentHistory", PaymentHistorySchema);

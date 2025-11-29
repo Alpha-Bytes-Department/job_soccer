@@ -32,10 +32,14 @@ router.get(
 /**
  * GET /api/v1/dashboard/monthly-income
  * 
- * Get monthly income for the current year (January to December)
- * Future months will show income as 0
+ * Get monthly income for the specified year (January to December)
+ * Future months will show income as 0 for current year
  * 
  * Auth: Required (admin only)
+ * 
+ * Query Parameters:
+ * - year (optional): Year to get income data for (e.g., 2025)
+ *                    Defaults to current year if not provided
  * 
  * Response: Array of 12 months with income data
  * [

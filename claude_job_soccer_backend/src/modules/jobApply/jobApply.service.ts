@@ -217,12 +217,13 @@ const applyToJob = async (
   );
 
   // Check if job has a required AI score threshold
-  if (job.requiredAiScore && aiMatchPercentage < job.requiredAiScore) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      `Your profile match score (${aiMatchPercentage}%) is below the required threshold (${job.requiredAiScore}%) for this job. Please improve your profile or apply to jobs that better match your qualifications.`
-    );
-  }
+  //TODO: Temporarily disable AI score threshold check
+  // if (job.requiredAiScore && aiMatchPercentage < job.requiredAiScore) {
+  //   throw new AppError(
+  //     StatusCodes.FORBIDDEN,
+  //     `Your profile match score (${aiMatchPercentage}%) is below the required threshold (${job.requiredAiScore}%) for this job. Please improve your profile or apply to jobs that better match your qualifications.`
+  //   );
+  // }
 
   let application;
 

@@ -30,6 +30,16 @@ const SubscriptionSchema = new Schema(
 
     currentPeriodStart: Date,
     currentPeriodEnd: Date,
+    
+    // Trial period tracking for upgrades
+    trialStart: Date,
+    trialEnd: Date,
+    trialDays: { type: Number, default: 0 }, // Remaining days from previous subscription
+    
+    // Upgrade tracking
+    isUpgrade: { type: Boolean, default: false },
+    upgradedFrom: { type: String }, // Previous subscription interval (monthly, halfYearly, yearly)
+    previousSubscriptionId: { type: String }, // Previous Stripe subscription ID
   },
   { timestamps: true }
 );
