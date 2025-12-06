@@ -41,6 +41,8 @@ export const messageSocketHandlers = (
       try {
         const userId = socket.data.userId;
 
+        console.log(payload);
+
         if (!userId) {
           const error = { message: "Unauthorized: User not authenticated" };
           if (callback) callback({ error });
@@ -92,6 +94,7 @@ export const messageSocketHandlers = (
         )?.socketId;
 
         if (receiverSocketId) {
+
           io.to(receiverSocketId).emit("new_message", {
             message,
           });
@@ -109,11 +112,11 @@ export const messageSocketHandlers = (
         const errorResponse = {
           message: error.message || "Failed to send message",
         };
-        
+
         if (callback) {
           callback({ error: errorResponse });
         }
-        
+
         socket.emit("error", errorResponse);
       }
     }
@@ -154,9 +157,9 @@ export const messageSocketHandlers = (
 
         // Get chat to find other user
         const chat = await ChatService.getChatById(payload.chatId);
-        const otherUserId = chat.users.find(
-          (id) => id.toString() !== userId
-        )?.toString();
+        const otherUserId = chat.users
+          .find((id) => id.toString() !== userId)
+          ?.toString();
 
         // Notify the other user that messages were read
         if (otherUserId) {
@@ -176,11 +179,11 @@ export const messageSocketHandlers = (
         const errorResponse = {
           message: error.message || "Failed to mark messages as read",
         };
-        
+
         if (callback) {
           callback({ error: errorResponse });
         }
-        
+
         socket.emit("error", errorResponse);
       }
     }
@@ -269,9 +272,9 @@ export const messageSocketHandlers = (
         }
 
         // Notify the blocked user
-        const blockedUserId = chat.users.find(
-          (id) => id.toString() !== userId
-        )?.toString();
+        const blockedUserId = chat.users
+          .find((id) => id.toString() !== userId)
+          ?.toString();
 
         if (blockedUserId) {
           const blockedUserSocketId = Array.from(onlineUsers.values()).find(
@@ -290,11 +293,11 @@ export const messageSocketHandlers = (
         const errorResponse = {
           message: error.message || "Failed to block user",
         };
-        
+
         if (callback) {
           callback({ error: errorResponse });
         }
-        
+
         socket.emit("error", errorResponse);
       }
     }
@@ -334,9 +337,9 @@ export const messageSocketHandlers = (
         }
 
         // Notify the unblocked user
-        const unblockedUserId = chat.users.find(
-          (id) => id.toString() !== userId
-        )?.toString();
+        const unblockedUserId = chat.users
+          .find((id) => id.toString() !== userId)
+          ?.toString();
 
         if (unblockedUserId) {
           const unblockedUserSocketId = Array.from(onlineUsers.values()).find(
@@ -355,11 +358,11 @@ export const messageSocketHandlers = (
         const errorResponse = {
           message: error.message || "Failed to unblock user",
         };
-        
+
         if (callback) {
           callback({ error: errorResponse });
         }
-        
+
         socket.emit("error", errorResponse);
       }
     }

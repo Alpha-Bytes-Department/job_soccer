@@ -5,7 +5,7 @@ services:
     image: redis:7
     container_name: redis_claude_job_soccer_dev
     ports:
-      - "6381:6379"
+      - "6383:6379"
     restart: always
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -45,8 +45,8 @@ services:
     container_name: elasticsearch_claude_job_soccer_dev
     restart: always
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "9201:9200"
+      - "9301:9300"
     environment:
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
       - "discovery.type=single-node"
@@ -67,7 +67,7 @@ services:
     depends_on: 
       - elasticsearch 
     ports: 
-      - "5601:5601"
+      - "5602:5601"
     environment:
       - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200" 
 

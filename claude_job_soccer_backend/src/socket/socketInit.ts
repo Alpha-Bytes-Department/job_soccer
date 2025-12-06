@@ -24,6 +24,35 @@ const socketInit = (io: Server) => {
   // Middleware for authentication
   io.use((socket: IAuthenticatedSocket, next) => {
     try {
+      console.log(`
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        some one is trying to comment socket
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        `);
       // Check multiple sources for token: auth object, headers, or query parameters
       const token = 
         socket.handshake.auth.token || 

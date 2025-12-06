@@ -159,7 +159,7 @@ router.post(
 router.post("/by-categories",  JobController.getJobsByCategories);
 
 /**
- * PATCH /api/v1/jobs
+ * PATCH /api/v1/job
  * /:id
  * Update a job (owner only)
  */
@@ -171,14 +171,14 @@ router.patch(
 );
 
 /**
- * DELETE /api/v1/jobs
+ * DELETE /api/v1/job
  * /:id
  * Delete a job (soft delete - owner only)
  */
 router.delete("/:id", auth(UserType.EMPLOYER), JobController.deleteJob);
 
 /**
- * POST /api/v1/jobs/:id/apply
+ * POST /api/v1/job/:id/apply
  * Increment application count for a job (when someone applies)
  */
 router.post("/:id/apply", auth(UserType.CANDIDATE), JobController.incrementApplicationCount);
@@ -188,7 +188,7 @@ router.post("/:id/apply", auth(UserType.CANDIDATE), JobController.incrementAppli
  */
 
 /**
- * POST /api/v1/jobs
+ * POST /api/v1/job
  * /bulk-update-status
  * Bulk update job status (admin only)
  * Body:
@@ -202,7 +202,7 @@ router.post(
 );
 
 /**
- * POST /api/v1/jobs
+ * POST /api/v1/job
  * /expire-old
  * Expire old jobs past their deadline (admin/cron job)
  */

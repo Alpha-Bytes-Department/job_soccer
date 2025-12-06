@@ -12,7 +12,8 @@ const createOrGetChat = async (
   // Validate users exist
   const user1 = await User.findById(user1Id);
   const user2 = await User.findById(user2Id);
-
+ console.log("user1",user1);
+ console.log("user2",user2);
   if (!user1 || !user2) {
     throw new AppError(StatusCodes.NOT_FOUND, "One or both users not found");
   }

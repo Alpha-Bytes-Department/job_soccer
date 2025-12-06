@@ -7,6 +7,7 @@ import { ChatService } from "./chat.service";
 const createOrGetChat = catchAsync(async (req: Request, res: Response) => {
   const { otherUserId } = req.body;
   const userId = req.user.id;
+  console.log(otherUserId,userId,"from controller");
 
   const chat = await ChatService.createOrGetChat(userId, otherUserId);
 

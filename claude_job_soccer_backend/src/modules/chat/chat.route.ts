@@ -25,7 +25,7 @@ const createOrGetChatSchema = z.object({
  */
 router.post(
   "/create-or-get",
-  auth(" candidate", "employer"),
+  auth("candidate", "employer"),
   validateRequest(createOrGetChatSchema),
   ChatController.createOrGetChat
 );

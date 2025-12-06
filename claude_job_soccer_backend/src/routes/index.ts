@@ -21,6 +21,7 @@ import { SubscriptionRoutes } from "../modules/subscription/subscription.route";
 import { EmailSubscriptionRoutes } from "../modules/emailSubscription/emailSubscription.route";
 import { DashboardRoutes } from "../modules/dashboard/dashboard.route";
 import { ProfileViewRoutes } from "../modules/profileView/profileView.route";
+import { NotificationRoutes } from "../modules/notification/notification.route";
 
 const router: Router = express.Router();
 
@@ -112,6 +113,10 @@ const apiRoutes = [
   {
     path: "/profile-views",
     route: ProfileViewRoutes,
+  },
+  {
+    path: "/notifications",
+    route: NotificationRoutes,
   },
 ];
 

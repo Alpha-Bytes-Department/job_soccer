@@ -12,9 +12,9 @@ const auth =
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const tokenWithBearer = req.headers.authorization;
+
       console.log(tokenWithBearer);
-console.log(req.body);
-logger.info(req.body)
+      console.log(req.body);
       if (!tokenWithBearer) {
         throw new AppError(StatusCodes.UNAUTHORIZED, "You are not authorized");
       }
@@ -27,10 +27,11 @@ logger.info(req.body)
             token,
             config.jwt.jwt_secret as Secret
           );
-     
+
           //set user to header
           req.user = verifyUser as typeof req.user;
-          
+          console.log(verifyUser.userType);
+          console.log(roles);
           //guard user
           if (roles.length && !roles.includes(verifyUser.userType)) {
             throw new AppError(
@@ -38,7 +39,7 @@ logger.info(req.body)
               "You don't have permission to access this api"
             );
           }
-       console.log("passed");
+          console.log("passed");
           next();
         }
     } catch (error) {

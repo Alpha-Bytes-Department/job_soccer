@@ -6,7 +6,7 @@ import { z } from "zod";
 const applyToJobDto = z.object({
   body: z.object({
     jobId: z.string().min(1, "Job ID is required"),
-    resumeUrl: z.string().optional(),
+    resumeUrl: z.string(),
   }),
 });
 
