@@ -86,6 +86,9 @@ userSchema.index({ isVerified: 1 });
 userSchema.index({ createdAt: -1 });
 // this for text search in names
 userSchema.index({ firstName: "text", lastName: "text" });
+// Compound indexes for employer queries optimization
+userSchema.index({ userType: 1, isDeleted: 1, profileId: 1, role: 1, createdAt: -1 });
+userSchema.index({ isDeleted: 1 });
 
 userSchema.pre("save", async function (next) {
   if (this.isModified("email")) {

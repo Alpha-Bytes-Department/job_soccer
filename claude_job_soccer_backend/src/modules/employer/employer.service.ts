@@ -101,40 +101,112 @@ const searchEmployers = async (
     .limit(Number(limit))
     .lean();
 
-  // Get followed employer IDs for authenticated users
-  const followedEmployerIds = userId
-    ? await Follow.find({ followerId: new Types.ObjectId(userId) })
-        .select("followingId")
-        .lean()
-        .exec()
-    : [];
+  if (users.length === 0) {
+    return {
+      result: [],
+      meta: {
+        page: Number(page),
+        limit: Number(limit),
+        total: 0,
+        totalPage: 0,
+      },
+    };
+  }
 
-  // Create a Set for O(1) lookup performance
-  const followedIdSet = new Set(
-    followedEmployerIds.map((f) => f.followingId.toString())
+  // Get followed employer IDs for authenticated users (single query)
+  const followedIdSet = new Set<string>();
+  if (userId) {
+    const followedEmployerIds = await Follow.find({ 
+      followerId: new Types.ObjectId(userId) 
+    })
+      .select("followingId")
+      .lean()
+      .exec();
+    followedEmployerIds.forEach((f) => followedIdSet.add(f.followingId.toString()));
+  }
+
+  // Group users by role to batch profile fetches
+  const usersByRole = new Map<EmployerRole, any[]>();
+  users.forEach((user) => {
+    const role = user.role as EmployerRole;
+    if (!usersByRole.has(role)) {
+      usersByRole.set(role, []);
+    }
+    usersByRole.get(role)!.push(user);
+  });
+
+  // Fetch all profiles grouped by role in parallel
+  const profilePromises = Array.from(usersByRole.entries()).map(
+    async ([role, roleUsers]) => {
+      const employerModel = getEmployerModel(role);
+      const profileIds = roleUsers.map((u) => u.profileId);
+      const profiles = await employerModel
+        .find({ _id: { $in: profileIds } })
+        .lean();
+      return profiles;
+    }
   );
 
-  // Fetch profile details for each user with active job count and follower count
-  const employersWithProfiles = await Promise.all(
-    users.map(async (user) => {
-      const employerModel = getEmployerModel(user.role as EmployerRole);
-      let profile = await employerModel.findById(user.profileId).lean();
+  const allProfiles = (await Promise.all(profilePromises)).flat();
+
+  // Create profile map for O(1) lookup
+  const profileMap = new Map(
+    allProfiles.map((p: any) => [p._id.toString(), p])
+  );
+
+  // Get all user IDs for batch counting
+  const userIds = users.map((u) => u._id);
+
+  // Pre-count jobs and followers for all users in parallel
+  const [jobCounts, followerCounts] = await Promise.all([
+    Job.aggregate([
+      {
+        $match: {
+          "creator.creatorId": { $in: userIds },
+          status: "active",
+        },
+      },
+      {
+        $group: {
+          _id: "$creator.creatorId",
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+    Follow.aggregate([
+      {
+        $match: {
+          followingId: { $in: userIds },
+        },
+      },
+      {
+        $group: {
+          _id: "$followingId",
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+  ]);
+
+  // Convert to Maps for O(1) lookup
+  const jobCountMap = new Map(
+    jobCounts.map((j: any) => [j._id.toString(), j.count])
+  );
+  const followerCountMap = new Map(
+    followerCounts.map((f: any) => [f._id.toString(), f.count])
+  );
+
+  // Construct employer data with pre-fetched profiles and counts
+  const employersWithProfiles = users
+    .map((user) => {
+      const profile = profileMap.get(user.profileId);
 
       // Filter by country if specified
       if (country && profile && (profile as any).country !== country) {
         return null;
       }
 
-      // Count active jobs posted by this employer
-      const activeJobCount = await Job.countDocuments({
-        "creator.creatorId": user._id,
-        status: "active",
-      });
-
-      // Count followers for this employer
-      const followerCount = await Follow.countDocuments({
-        followingId: user._id,
-      });
+      const userId = user._id.toString();
 
       return {
         _id: user._id,
@@ -145,24 +217,19 @@ const searchEmployers = async (
         profileImage: user.profileImage,
         userType: user.userType,
         profile,
-        activeJobCount,
-        followerCount,
-        isFollowing: followedIdSet.has(user._id.toString()),
+        activeJobCount: jobCountMap.get(userId) || 0,
+        followerCount: followerCountMap.get(userId) || 0,
+        isFollowing: followedIdSet.has(userId),
       };
     })
-  );
-
-  // Filter out null values (employers that didn't match country filter)
-  const filteredEmployers = employersWithProfiles.filter(
-    (employer) => employer !== null
-  );
+    .filter((employer) => employer !== null);
 
   // Count total for pagination
   const total = await User.countDocuments(userQuery);
   const totalPage = Math.ceil(total / Number(limit));
 
   return {
-    result: filteredEmployers,
+    result: employersWithProfiles,
     meta: {
       page: Number(page),
       limit: Number(limit),
@@ -190,22 +257,56 @@ const getFeaturedEmployers = async (userId?: string) => {
     EmployerRole.AGENT,
   ];
 
-  // Get followed employer IDs for authenticated users
-  const followedEmployerIds = userId
-    ? await Follow.find({ followerId: new Types.ObjectId(userId) })
-        .select("followingId")
-        .lean()
-        .exec()
-    : [];
+  // Get followed employer IDs for authenticated users (single query)
+  const followedIdSet = new Set<string>();
+  if (userId) {
+    const followedEmployerIds = await Follow.find({ 
+      followerId: new Types.ObjectId(userId) 
+    })
+      .select("followingId")
+      .lean()
+      .exec();
+    followedEmployerIds.forEach((f) => followedIdSet.add(f.followingId.toString()));
+  }
 
-  // Create a Set for O(1) lookup performance
-  const followedIdSet = new Set(
-    followedEmployerIds.map((f) => f.followingId.toString())
+  // Pre-count jobs and followers for all employers in parallel
+  const [jobCounts, followerCounts] = await Promise.all([
+    Job.aggregate([
+      {
+        $match: {
+          status: "active",
+          "creator.creatorId": { $exists: true },
+        },
+      },
+      {
+        $group: {
+          _id: "$creator.creatorId",
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+    Follow.aggregate([
+      {
+        $group: {
+          _id: "$followingId",
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+  ]);
+
+  // Convert to Maps for O(1) lookup
+  const jobCountMap = new Map(
+    jobCounts.map((j: any) => [j._id.toString(), j.count])
+  );
+  const followerCountMap = new Map(
+    followerCounts.map((f: any) => [f._id.toString(), f.count])
   );
 
   const featuredEmployers: Record<string, any[]> = {};
 
-  await Promise.all(
+  // Process all categories in parallel
+  const results = await Promise.all(
     categories.map(async (category) => {
       // Get top 4 employers from each category
       const users = await User.find({
@@ -214,46 +315,55 @@ const getFeaturedEmployers = async (userId?: string) => {
         isDeleted: { $ne: true },
         profileId: { $exists: true, $ne: null },
       })
-        .sort({ createdAt: -1 }) // Sort by most recent
+        .sort({ createdAt: -1 })
         .limit(4)
         .lean();
 
-      // Fetch profile details for each user
-      const employersWithProfiles = await Promise.all(
-        users.map(async (user) => {
-          const employerModel = getEmployerModel(user.role as EmployerRole);
-          const profile = await employerModel.findById(user.profileId).lean();
-          // Count active jobs posted by this employer
-          const activeJobCount = await Job.countDocuments({
-            "creator.creatorId": user._id,
-            status: "active",
-          });
+      if (users.length === 0) {
+        return { category, employers: [] };
+      }
 
-          // Count followers for this employer
-          const followerCount = await Follow.countDocuments({
-            followingId: user._id,
-          });
-          return {
-            _id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            role: user.role,
-            profileImage: user.profileImage,
-            userType: user.userType,
-            profile,
-            activeJobCount,
-            followerCount,
-            isFollowing: followedIdSet.has(user._id.toString()),
-          };
-        })
+      // Get employer model for this category
+      const employerModel = getEmployerModel(category);
+
+      // Fetch all profiles for this category in one query
+      const profileIds = users.map((u) => u.profileId);
+      const profiles = await employerModel
+        .find({ _id: { $in: profileIds } })
+        .lean();
+
+      // Create profile map for O(1) lookup
+      const profileMap = new Map(
+        profiles.map((p: any) => [p._id.toString(), p])
       );
 
-      // Use a more readable key name
-      const categoryKey = category.replace(/\s+/g, "").replace(/\//g, "");
-      featuredEmployers[categoryKey] = employersWithProfiles;
+      // Construct employer data with pre-fetched counts
+      const employersWithProfiles = users.map((user) => {
+        const userId = user._id.toString();
+        return {
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          profileImage: user.profileImage,
+          userType: user.userType,
+          profile: profileMap.get(user.profileId),
+          activeJobCount: jobCountMap.get(userId) || 0,
+          followerCount: followerCountMap.get(userId) || 0,
+          isFollowing: followedIdSet.has(userId),
+        };
+      });
+
+      return { category, employers: employersWithProfiles };
     })
   );
+
+  // Convert results array to object with category keys
+  results.forEach(({ category, employers }) => {
+    const categoryKey = category.replace(/\s+/g, "").replace(/\//g, "");
+    featuredEmployers[categoryKey] = employers;
+  });
 
   return featuredEmployers;
 };
