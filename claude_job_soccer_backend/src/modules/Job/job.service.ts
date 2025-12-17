@@ -590,10 +590,22 @@ const expireOldJobs = async () => {
 
 /**
  * Get job counts grouped by role/jobCategory for home page display
+ * Returns all candidate roles with their counts (0 if no jobs exist)
  * Returns: [{ role: "Professional Player", jobCount: 4 }, ...]
  */
 const getJobCountsByRole = async () => {
-  const result = await Job.aggregate([
+  // Define all possible candidate roles
+  const allCandidateRoles = [
+    "Professional Player",
+    "Amateur Player",
+    "High School",
+    "College/University",
+    "On field staff",
+    "Office Staff",
+  ];
+
+  // Get job counts from database
+  const jobCounts = await Job.aggregate([
     {
       $match: {
         status: "active", // Only count active jobs
@@ -612,10 +624,19 @@ const getJobCountsByRole = async () => {
         jobCount: 1,
       },
     },
-    {
-      $sort: { jobCount: -1 }, // Sort by count descending
-    },
   ]);
+
+  // Create a map of role to count
+  const roleCountMap = new Map<string, number>();
+  jobCounts.forEach((item) => {
+    roleCountMap.set(item.role, item.jobCount);
+  });
+
+  // Build result array with all roles, using 0 for missing ones
+  const result = allCandidateRoles.map((role) => ({
+    role,
+    jobCount: roleCountMap.get(role) || 0,
+  }));
 
   return result;
 };
