@@ -40,7 +40,8 @@ router.get(
 /**
  * GET /api/v1/candidates/:id
  * Get candidate by ID with full profile details
+ * Includes relationship fields when authenticated
  */
-router.get("/:id", CandidateController.getCandidateById);
+router.get("/:id", optionalAuth, CandidateController.getCandidateById);
 
 export const CandidateRoutes: Router = router;

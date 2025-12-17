@@ -42,7 +42,8 @@ const getFeaturedCandidates = catchAsync(async (req: Request, res: Response) => 
  * Get candidate by ID with full profile details
  */
 const getCandidateById = catchAsync(async (req: Request, res: Response) => {
-  const result = await CandidateServices.getCandidateById(req.params.id);
+  const userId = req.user?.id; // Optional - may be undefined for unauthenticated users
+  const result = await CandidateServices.getCandidateById(req.params.id, userId);
   
   sendResponse(res, {
     statusCode: StatusCodes.OK,

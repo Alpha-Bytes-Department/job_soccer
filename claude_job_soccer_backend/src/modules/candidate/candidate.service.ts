@@ -42,12 +42,12 @@ const getCandidateModel = (role: CandidateRole): any => {
 /**
  * Search candidates by name, category, and country
  * Supports pagination, sorting, and filtering
- * SEMI-PRIVATE: When authenticated, applies custom hide logic:
- * 1. Hide candidates shortlisted by the user (one-way)
- * 2. Hide candidates with any friend request interaction (two-way)
+ * When authenticated, includes relationship fields:
+ * 1. isShortlisted - Whether the candidate is shortlisted by the current user
+ * 2. friendRequestStatus - Friend request status and type (sent/received) from user's perspective
  * 
  * @param query - Query parameters for filtering
- * @param userId - Optional user ID for authenticated filtering
+ * @param userId - Optional user ID for authenticated user context
  */
 const searchCandidates = async (query: Record<string, unknown>, userId?: string) => {
   const {
@@ -70,50 +70,6 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
     profileId: { $exists: true, $ne: null }, // Only users with profiles
   };
 
-  // SEMI-PRIVATE FILTERING: Apply when user is authenticated
-  if (userId) {
-    const excludeUserIds: Types.ObjectId[] = [];
-
-    // 1. Get candidates shortlisted by this user (one-way hide)
-    const shortlistedCandidates = await CandidateShortList.find({
-      shortlistedById: new Types.ObjectId(userId),
-    })
-      .select("candidateId")
-      .lean()
-      .exec();
-
-    excludeUserIds.push(...shortlistedCandidates.map(s => s.candidateId));
-
-    // 2. Get candidates with friend request interactions (two-way hide)
-    // This includes: sent, received, pending, accepted, rejected
-    const friendListInteractions = await FriendList.find({
-      $or: [
-        { senderId: new Types.ObjectId(userId) },
-        { receiverId: new Types.ObjectId(userId) },
-      ],
-    })
-      .select("senderId receiverId")
-      .lean()
-      .exec();
-
-    // Add both sender and receiver IDs (excluding the current user)
-    for (const interaction of friendListInteractions) {
-      if (interaction.senderId.toString() !== userId) {
-        excludeUserIds.push(interaction.senderId);
-      }
-      if (interaction.receiverId.toString() !== userId) {
-        excludeUserIds.push(interaction.receiverId);
-      }
-    }
-
-    // Add exclusion filter if there are users to exclude
-    if (excludeUserIds.length > 0) {
-      // Remove duplicates
-      const uniqueExcludeIds = [...new Set(excludeUserIds.map(id => id.toString()))];
-      userQuery._id = { $nin: uniqueExcludeIds.map(id => new Types.ObjectId(id)) };
-    }
-  }
-
   // Filter by candidate role/category if provided
   if (role) {
     userQuery.role = role;
@@ -131,9 +87,49 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
   const users = await User.find(userQuery)
     .skip((Number(page) - 1) * Number(limit))
     .limit(Number(limit))
-    .lean()
+    .lean();
 
-  // Fetch profile details for each user
+  // Batch fetch relationship data for performance (only if user is authenticated)
+  let shortlistMap = new Map<string, boolean>();
+  let friendRequestMap = new Map<string, { status: string; type: 'sent' | 'received' }>();
+
+  if (userId && users.length > 0) {
+    const userIds = users.map(u => u._id);
+
+    // Batch fetch shortlist data
+    const shortlisted = await CandidateShortList.find({
+      shortlistedById: new Types.ObjectId(userId),
+      candidateId: { $in: userIds },
+    })
+      .select("candidateId")
+      .lean();
+
+    shortlisted.forEach(item => {
+      shortlistMap.set(item.candidateId.toString(), true);
+    });
+
+    // Batch fetch friend request data
+    const friendRequests = await FriendList.find({
+      $or: [
+        { senderId: new Types.ObjectId(userId), receiverId: { $in: userIds } },
+        { receiverId: new Types.ObjectId(userId), senderId: { $in: userIds } },
+      ],
+    })
+      .select("senderId receiverId status")
+      .lean();
+
+    friendRequests.forEach(fr => {
+      const isSender = fr.senderId.toString() === userId;
+      const otherUserId = isSender ? fr.receiverId.toString() : fr.senderId.toString();
+      
+      friendRequestMap.set(otherUserId, {
+        status: fr.status,
+        type: isSender ? 'sent' : 'received',
+      });
+    });
+  }
+
+  // Fetch profile details for each user with relationship fields
   const candidatesWithProfiles = await Promise.all(
     users.map(async (user) => {
       const candidateModel = getCandidateModel(user.role as CandidateRole);
@@ -144,6 +140,8 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
         return null;
       }
 
+      const userId_str = user._id.toString();
+
       return {
         _id: user._id,
         firstName: user.firstName,
@@ -153,6 +151,11 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
         profileImage: user.profileImage,
         userType: user.userType,
         profile,
+        // Relationship fields (only present when user is authenticated)
+        ...(userId && {
+          isShortlisted: shortlistMap.get(userId_str) || false,
+          friendRequestStatus: friendRequestMap.get(userId_str) || null,
+        }),
       };
     })
   );
@@ -180,6 +183,7 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
 /**
  * Get featured candidates grouped by category
  * Returns max 4 candidates per category
+ * When authenticated, includes relationship fields for each candidate
  */
 const getFeaturedCandidates = async (userId?:string) => {
   const categories = [
@@ -204,11 +208,53 @@ const getFeaturedCandidates = async (userId?:string) => {
         .limit(4)
         .lean();
 
-      // Fetch profile details for each user
+      // Batch fetch relationship data for performance (only if user is authenticated)
+      let shortlistMap = new Map<string, boolean>();
+      let friendRequestMap = new Map<string, { status: string; type: 'sent' | 'received' }>();
+
+      if (userId && users.length > 0) {
+        const userIds = users.map(u => u._id);
+
+        // Batch fetch shortlist data
+        const shortlisted = await CandidateShortList.find({
+          shortlistedById: new Types.ObjectId(userId),
+          candidateId: { $in: userIds },
+        })
+          .select("candidateId")
+          .lean();
+
+        shortlisted.forEach(item => {
+          shortlistMap.set(item.candidateId.toString(), true);
+        });
+
+        // Batch fetch friend request data
+        const friendRequests = await FriendList.find({
+          $or: [
+            { senderId: new Types.ObjectId(userId), receiverId: { $in: userIds } },
+            { receiverId: new Types.ObjectId(userId), senderId: { $in: userIds } },
+          ],
+        })
+          .select("senderId receiverId status")
+          .lean();
+
+        friendRequests.forEach(fr => {
+          const isSender = fr.senderId.toString() === userId;
+          const otherUserId = isSender ? fr.receiverId.toString() : fr.senderId.toString();
+          
+          friendRequestMap.set(otherUserId, {
+            status: fr.status,
+            type: isSender ? 'sent' : 'received',
+          });
+        });
+      }
+
+      // Fetch profile details for each user with relationship fields
       const candidatesWithProfiles = await Promise.all(
         users.map(async (user) => {
           const candidateModel = getCandidateModel(user.role as CandidateRole);
           const profile = await candidateModel.findById(user.profileId).lean();
+
+          const userId_str = user._id.toString();
 
           return {
             _id: user._id,
@@ -219,6 +265,11 @@ const getFeaturedCandidates = async (userId?:string) => {
             profileImage: user.profileImage,
             userType: user.userType,
             profile,
+            // Relationship fields (only present when user is authenticated)
+            ...(userId && {
+              isShortlisted: shortlistMap.get(userId_str) || false,
+              friendRequestStatus: friendRequestMap.get(userId_str) || null,
+            }),
           };
         })
       );
@@ -234,8 +285,9 @@ const getFeaturedCandidates = async (userId?:string) => {
 
 /**
  * Get candidate by ID with full profile details
+ * When authenticated, includes relationship fields
  */
-const getCandidateById = async (id: string) => {
+const getCandidateById = async (id: string, userId?: string) => {
   const user = await User.findById(id).lean();
 
   if (!user) {
@@ -258,6 +310,38 @@ const getCandidateById = async (id: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "Profile details not found");
   }
 
+  // Fetch relationship data if user is authenticated
+  let isShortlisted = false;
+  let friendRequestStatus: { status: string; type: 'sent' | 'received' } | null = null;
+
+  if (userId) {
+    // Check if shortlisted
+    const shortlist = await CandidateShortList.findOne({
+      shortlistedById: new Types.ObjectId(userId),
+      candidateId: user._id,
+    }).lean();
+
+    isShortlisted = !!shortlist;
+
+    // Check friend request status
+    const friendRequest = await FriendList.findOne({
+      $or: [
+        { senderId: new Types.ObjectId(userId), receiverId: user._id },
+        { receiverId: new Types.ObjectId(userId), senderId: user._id },
+      ],
+    })
+      .select("senderId receiverId status")
+      .lean();
+
+    if (friendRequest) {
+      const isSender = friendRequest.senderId.toString() === userId;
+      friendRequestStatus = {
+        status: friendRequest.status,
+        type: isSender ? 'sent' : 'received',
+      };
+    }
+  }
+
   return {
     _id: user._id,
     firstName: user.firstName,
@@ -268,6 +352,11 @@ const getCandidateById = async (id: string) => {
     userType: user.userType,
     isVerified: user.isVerified,
     profile,
+    // Relationship fields (only present when user is authenticated)
+    ...(userId && {
+      isShortlisted,
+      friendRequestStatus,
+    }),
   };
 };
 
