@@ -99,32 +99,6 @@ const getAllJobs = async (query: Record<string, any>, userId?: string) => {
     }
   }
 
-  // SEMI-PRIVATE FILTERING: Exclude jobs user has interacted with
-  if (userId) {
-    // Get job IDs that user has saved or applied to
-    const [savedJobIds, appliedJobIds] = await Promise.all([
-      SavedJob.find({ userId: new Types.ObjectId(userId) })
-        .select("jobId")
-        .lean()
-        .exec(),
-      JobApply.find({ candidateId: new Types.ObjectId(userId), isDeleted: false })
-        .select("jobId")
-        .lean()
-        .exec(),
-    ]);
-
-    // Combine all job IDs to exclude
-    const excludeJobIds = [
-      ...savedJobIds.map(s => s.jobId),
-      ...appliedJobIds.map(a => a.jobId),
-    ];
-
-    // Add exclusion filter if there are jobs to exclude
-    if (excludeJobIds.length > 0) {
-      queryFilter._id = { $nin: excludeJobIds };
-    }
-  }
-
   // Pagination
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 9999;
@@ -150,7 +124,7 @@ const getAllJobs = async (query: Record<string, any>, userId?: string) => {
   }
 
   // Execute queries in parallel for better performance
-  const [jobs, total] = await Promise.all([
+  const [jobs, total, savedJobIds, appliedJobIds] = await Promise.all([
     Job.find(queryFilter)
       .select(selectFields)
       .sort(sortBy)
@@ -160,10 +134,35 @@ const getAllJobs = async (query: Record<string, any>, userId?: string) => {
       .lean()
       .exec(),
     Job.countDocuments(queryFilter).exec(),
+    // Get saved job IDs if user is authenticated
+    userId
+      ? SavedJob.find({ userId: new Types.ObjectId(userId) })
+          .select("jobId")
+          .lean()
+          .exec()
+      : Promise.resolve([]),
+    // Get applied job IDs if user is authenticated
+    userId
+      ? JobApply.find({ candidateId: new Types.ObjectId(userId), isDeleted: false })
+          .select("jobId")
+          .lean()
+          .exec()
+      : Promise.resolve([]),
   ]);
 
+  // Create Sets for O(1) lookup performance
+  const savedJobIdSet = new Set(savedJobIds.map(s => s.jobId.toString()));
+  const appliedJobIdSet = new Set(appliedJobIds.map(a => a.jobId.toString()));
+
+  // Add isApplied and isSaved fields to each job
+  const jobsWithStatus = jobs.map(job => ({
+    ...job,
+    isApplied: appliedJobIdSet.has(job._id.toString()),
+    isSaved: savedJobIdSet.has(job._id.toString()),
+  }));
+
   return {
-    data: jobs,
+    data: jobsWithStatus,
     meta: {
       page,
       limit,
@@ -285,21 +284,48 @@ const getActiveJobs = async (filters: {
 /**
  * Get single job by ID
  * OPTIMIZED: Uses _id index (default)
+ * SEMI-PRIVATE: When authenticated, includes isApplied/isSaved fields
+ * 
+ * @param id - Job ID
+ * @param userId - Optional user ID for authenticated users
  */
-const getJobById = async (id: string) => {
+const getJobById = async (id: string, userId?: string) => {
   if (!Types.ObjectId.isValid(id)) {
     throw new AppError(StatusCodes.BAD_REQUEST, "Invalid job ID");
   }
 
-  const job = await Job.findById(id)
-    .populate("creator.creatorId", "firstName lastName email profileImage role")
-    .lean();
+  const [job, savedJobIds, appliedJobIds] = await Promise.all([
+    Job.findById(id)
+      .populate("creator.creatorId", "firstName lastName email profileImage role")
+      .lean(),
+    // Get saved job IDs if user is authenticated
+    userId
+      ? SavedJob.find({ userId: new Types.ObjectId(userId), jobId: new Types.ObjectId(id) })
+          .select("jobId")
+          .lean()
+          .exec()
+      : Promise.resolve([]),
+    // Get applied job IDs if user is authenticated
+    userId
+      ? JobApply.find({ candidateId: new Types.ObjectId(userId), jobId: new Types.ObjectId(id), isDeleted: false })
+          .select("jobId")
+          .lean()
+          .exec()
+      : Promise.resolve([]),
+  ]);
 
   if (!job) {
     throw new AppError(StatusCodes.NOT_FOUND, "Job not found");
   }
 
-  return job;
+  // Add isApplied and isSaved fields
+  const jobWithStatus = {
+    ...job,
+    isApplied: appliedJobIds.length > 0,
+    isSaved: savedJobIds.length > 0,
+  };
+
+  return jobWithStatus;
 };
 
 /**
@@ -597,16 +623,46 @@ const getJobCountsByRole = async () => {
 /**
  * Get the last 4 jobs (most recent active jobs)
  * Useful for displaying recent job postings on home page or dashboard
+ * SEMI-PRIVATE: When authenticated, includes isApplied/isSaved fields
+ * 
+ * @param userId - Optional user ID for authenticated users
  */
-const getLastFourJobs = async () => {
-  const jobs = await Job.find({ status: "active" })
-    .sort({ createdAt: -1 })
-    .limit(4)
-    .populate("creator.creatorId", "firstName lastName email profileImage role")
-    .lean()
-    .exec();
+const getLastFourJobs = async (userId?: string) => {
+  const [jobs, savedJobIds, appliedJobIds] = await Promise.all([
+    Job.find({ status: "active" })
+      .sort({ createdAt: -1 })
+      .limit(4)
+      .populate("creator.creatorId", "firstName lastName email profileImage role")
+      .lean()
+      .exec(),
+    // Get saved job IDs if user is authenticated
+    userId
+      ? SavedJob.find({ userId: new Types.ObjectId(userId) })
+          .select("jobId")
+          .lean()
+          .exec()
+      : Promise.resolve([]),
+    // Get applied job IDs if user is authenticated
+    userId
+      ? JobApply.find({ candidateId: new Types.ObjectId(userId), isDeleted: false })
+          .select("jobId")
+          .lean()
+          .exec()
+      : Promise.resolve([]),
+  ]);
 
-  return jobs;
+  // Create Sets for O(1) lookup performance
+  const savedJobIdSet = new Set(savedJobIds.map(s => s.jobId.toString()));
+  const appliedJobIdSet = new Set(appliedJobIds.map(a => a.jobId.toString()));
+
+  // Add isApplied and isSaved fields to each job
+  const jobsWithStatus = jobs.map(job => ({
+    ...job,
+    isApplied: appliedJobIdSet.has(job._id.toString()),
+    isSaved: savedJobIdSet.has(job._id.toString()),
+  }));
+
+  return jobsWithStatus;
 };
 
 // Export all service functions

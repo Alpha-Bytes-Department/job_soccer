@@ -48,7 +48,7 @@ const getEmployerModel = (role: EmployerRole): any => {
 /**
  * Search employers by name, category, and country
  * Supports pagination, sorting, and filtering
- * SEMI-PRIVATE: When authenticated, hides employers followed by the user (one-way)
+ * SEMI-PRIVATE: When authenticated, includes isFollowing field for each employer
  *
  * @param query - Query parameters for filtering
  * @param userId - Optional user ID for authenticated filtering
@@ -81,22 +81,6 @@ const searchEmployers = async (
     profileId: { $exists: true, $ne: null }, // Only users with profiles
   };
 
-  // SEMI-PRIVATE FILTERING: Hide employers followed by the user (one-way)
-  if (userId) {
-    const followedEmployers = await Follow.find({
-      followerId: new Types.ObjectId(userId),
-    })
-      .select("followingId")
-      .lean()
-      .exec();
-
-    // Add exclusion filter if there are employers to exclude
-    if (followedEmployers.length > 0) {
-      const excludeEmployerIds = followedEmployers.map((f) => f.followingId);
-      userQuery._id = { $nin: excludeEmployerIds };
-    }
-  }
-
   // Filter by employer role/category if provided
   if (role) {
     userQuery.role = role;
@@ -116,6 +100,19 @@ const searchEmployers = async (
     .skip((Number(page) - 1) * Number(limit))
     .limit(Number(limit))
     .lean();
+
+  // Get followed employer IDs for authenticated users
+  const followedEmployerIds = userId
+    ? await Follow.find({ followerId: new Types.ObjectId(userId) })
+        .select("followingId")
+        .lean()
+        .exec()
+    : [];
+
+  // Create a Set for O(1) lookup performance
+  const followedIdSet = new Set(
+    followedEmployerIds.map((f) => f.followingId.toString())
+  );
 
   // Fetch profile details for each user with active job count and follower count
   const employersWithProfiles = await Promise.all(
@@ -150,6 +147,7 @@ const searchEmployers = async (
         profile,
         activeJobCount,
         followerCount,
+        isFollowing: followedIdSet.has(user._id.toString()),
       };
     })
   );
@@ -177,8 +175,11 @@ const searchEmployers = async (
 /**
  * Get featured employers grouped by category
  * Returns max 4 employers per category
+ * SEMI-PRIVATE: When authenticated, includes isFollowing field
+ * 
+ * @param userId - Optional user ID for authenticated users
  */
-const getFeaturedEmployers = async () => {
+const getFeaturedEmployers = async (userId?: string) => {
   const categories = [
     EmployerRole.PROFESSIONAL_CLUB,
     EmployerRole.ACADEMY,
@@ -188,6 +189,19 @@ const getFeaturedEmployers = async () => {
     EmployerRole.COLLEGE_UNIVERSITY,
     EmployerRole.AGENT,
   ];
+
+  // Get followed employer IDs for authenticated users
+  const followedEmployerIds = userId
+    ? await Follow.find({ followerId: new Types.ObjectId(userId) })
+        .select("followingId")
+        .lean()
+        .exec()
+    : [];
+
+  // Create a Set for O(1) lookup performance
+  const followedIdSet = new Set(
+    followedEmployerIds.map((f) => f.followingId.toString())
+  );
 
   const featuredEmployers: Record<string, any[]> = {};
 
@@ -230,6 +244,7 @@ const getFeaturedEmployers = async () => {
             profile,
             activeJobCount,
             followerCount,
+            isFollowing: followedIdSet.has(user._id.toString()),
           };
         })
       );
@@ -245,8 +260,12 @@ const getFeaturedEmployers = async () => {
 
 /**
  * Get employer by ID with full profile details
+ * SEMI-PRIVATE: When authenticated, includes isFollowing field
+ * 
+ * @param id - Employer ID
+ * @param userId - Optional user ID for authenticated users
  */
-const getEmployerById = async (id: string) => {
+const getEmployerById = async (id: string, userId?: string) => {
   const user = await User.findById(id).lean();
 
   if (!user) {
@@ -269,6 +288,14 @@ const getEmployerById = async (id: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "Profile details not found");
   }
 
+  // Check if authenticated user is following this employer
+  const isFollowing = userId
+    ? await Follow.exists({
+        followerId: new Types.ObjectId(userId),
+        followingId: new Types.ObjectId(id),
+      }).then((result) => !!result)
+    : false;
+
   return {
     _id: user._id,
     firstName: user.firstName,
@@ -279,6 +306,7 @@ const getEmployerById = async (id: string) => {
     userType: user.userType,
     isVerified: user.isVerified,
     profile,
+    isFollowing,
   };
 };
 

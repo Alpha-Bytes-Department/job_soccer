@@ -66,9 +66,10 @@ router.get("/counts-by-role", JobController.getJobCountsByRole);
  * GET /api/v1/job
  * /last-four
  * Get the last 4 most recent active jobs
+ * Semi-private: Authenticated users get isApplied/isSaved fields
  * Returns: Array of 4 most recent job objects
  */
-router.get("/last-four", JobController.getLastFourJobs);
+router.get("/last-four", optionalAuth, JobController.getLastFourJobs);
 
 /**
  * GET /api/v1/job
@@ -130,8 +131,9 @@ router.get("/stats/employer/:employerId", JobController.getEmployerJobStats);
  * GET /api/v1/job
  * /:id
  * Get a single job by ID
+ * Semi-private: Authenticated users get isApplied/isSaved fields
  */
-router.get("/:id", JobController.getJobById);
+router.get("/:id", optionalAuth, JobController.getJobById);
 
 /**
  * PROTECTED ROUTES - Require authentication

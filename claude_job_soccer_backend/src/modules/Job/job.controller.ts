@@ -122,9 +122,11 @@ const getExpiringJobs = catchAsync(async (req: Request, res: Response) => {
 /**
  * Get single job by ID
  * GET /api/v1/jobs/:id
+ * Semi-private: Authenticated users get isApplied/isSaved fields
  */
 const getJobById = catchAsync(async (req: Request, res: Response) => {
-  const result = await JobService.getJobById(req.params.id);
+  const userId = req.user?.id; // Optional - may be undefined for unauthenticated users
+  const result = await JobService.getJobById(req.params.id, userId);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -318,9 +320,11 @@ const getJobCountsByRole = catchAsync(async (req: Request, res: Response) => {
 /**
  * Get the last 4 jobs (most recent active jobs)
  * GET /api/v1/jobs/last-four
+ * Semi-private: Authenticated users get isApplied/isSaved fields
  */
 const getLastFourJobs = catchAsync(async (req: Request, res: Response) => {
-  const result = await JobService.getLastFourJobs();
+  const userId = req.user?.id; // Optional - may be undefined for unauthenticated users
+  const result = await JobService.getLastFourJobs(userId);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

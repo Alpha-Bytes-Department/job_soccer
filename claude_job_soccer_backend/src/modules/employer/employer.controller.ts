@@ -24,10 +24,12 @@ const searchEmployers = catchAsync(async (req: Request, res: Response) => {
 
 /**
  * Get featured employers grouped by category
+ * Semi-private: Authenticated users get isFollowing field
  * Returns max 4 employers per category
  */
 const getFeaturedEmployers = catchAsync(async (req: Request, res: Response) => {
-  const result = await EmployerServices.getFeaturedEmployers();
+  const userId = req.user?.id; // Optional - may be undefined for unauthenticated users
+  const result = await EmployerServices.getFeaturedEmployers(userId);
   
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -39,9 +41,11 @@ const getFeaturedEmployers = catchAsync(async (req: Request, res: Response) => {
 
 /**
  * Get employer by ID with full profile details
+ * Semi-private: Authenticated users get isFollowing field
  */
 const getEmployerById = catchAsync(async (req: Request, res: Response) => {
-  const result = await EmployerServices.getEmployerById(req.params.id);
+  const userId = req.user?.id; // Optional - may be undefined for unauthenticated users
+  const result = await EmployerServices.getEmployerById(req.params.id, userId);
   
   sendResponse(res, {
     statusCode: StatusCodes.OK,

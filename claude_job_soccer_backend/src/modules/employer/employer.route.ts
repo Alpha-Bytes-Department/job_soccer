@@ -21,6 +21,7 @@ router.get("/search", optionalAuth, EmployerController.searchEmployers);
 /**
  * GET /api/v1/employers/featured
  * Get featured employers grouped by category
+ * Semi-private: Authenticated users get isFollowing field
  * Returns max 4 employers per category
  * Response format: 
  * {
@@ -34,12 +35,13 @@ router.get("/search", optionalAuth, EmployerController.searchEmployers);
  * }
  */
 
-router.get("/featured", EmployerController.getFeaturedEmployers);
+router.get("/featured", optionalAuth, EmployerController.getFeaturedEmployers);
 
 /**
  * GET /api/v1/employers/:id
  * Get employer by ID with full profile details
+ * Semi-private: Authenticated users get isFollowing field
  */
-router.get("/:id", EmployerController.getEmployerById);
+router.get("/:id", optionalAuth, EmployerController.getEmployerById);
 
 export const EmployerRoutes: Router = router;

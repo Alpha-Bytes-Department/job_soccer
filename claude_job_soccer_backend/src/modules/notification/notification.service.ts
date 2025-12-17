@@ -20,7 +20,7 @@ const createNotification = async (
     userId: new Types.ObjectId(userId),
     isRead: false,
   });
-
+   console.log("IS user online ------------>",isUserOnline(userId));
   // Send real-time notification if user is online
   if (isUserOnline(userId)) {
     const socketId = getSocketIdByUserId(userId);
