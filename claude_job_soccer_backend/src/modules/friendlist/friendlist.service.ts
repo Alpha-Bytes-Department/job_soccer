@@ -4,6 +4,75 @@ import { TFriendList } from "./friendlist.interface";
 import AppError from "../../errors/AppError";
 import { StatusCodes } from "http-status-codes";
 import { User } from "../user/user.model";
+import { CandidateRole, EmployerRole } from "../user/user.interface";
+
+// Import Candidate Models
+import { AmateurPlayerCan } from "../candidate/amateurPlayerCan/amateurPlayerCan.model";
+import { ProfessionalPlayerCan } from "../candidate/professionalPlayerCan/professionalPlayerCan.model";
+import { OnFieldStaffCan } from "../candidate/onFieldStaffCan/onFieldStaffCan.model";
+import { OfficeStaffCan } from "../candidate/officeStaffCan/officeStaffCan.model";
+import { HighSchoolCan } from "../candidate/highSchoolCan/highSchoolCan.model";
+import { CollegeOrUniversity } from "../candidate/collegeOrUniversityCan/collegeOrUniversityCan.model";
+
+// Import Employer Models
+import { AcademyEmp } from "../employer/academyEmp/academyEmp.model";
+import { AgentEmp } from "../employer/agentEmp/agentEmp.model";
+import { AmateurClubEmp } from "../employer/amateurClubEmp/amateurClubEmp.model";
+import { CollegeOrUniversityEmp } from "../employer/collegeOrUniversityEmp/collegeOrUniversityEmp.model";
+import { ConsultingCompanyEmp } from "../employer/consultingCompanyEmp/consultingCompanyEmp.model";
+import { HighSchoolEmp } from "../employer/highSchoolEmp/highSchoolEmp.model";
+import { ProfessionalClubEmp } from "../employer/professionalClubEmp/professionalClubEmp.model";
+
+// Import models for additional fields
+import { CandidateShortList } from "../candidateShortList/candidateShortList.model";
+import { Follow } from "../follow/follow.model";
+import { Job } from "../Job/job.model";
+
+/**
+ * Get candidate model based on role
+ */
+const getCandidateModel = (role: CandidateRole): any => {
+  switch (role) {
+    case CandidateRole.PROFESSIONAL_PLAYER:
+      return ProfessionalPlayerCan;
+    case CandidateRole.AMATEUR_PLAYER:
+      return AmateurPlayerCan;
+    case CandidateRole.HIGH_SCHOOL:
+      return HighSchoolCan;
+    case CandidateRole.COLLEGE_UNIVERSITY:
+      return CollegeOrUniversity;
+    case CandidateRole.ON_FIELD_STAFF:
+      return OnFieldStaffCan;
+    case CandidateRole.OFFICE_STAFF:
+      return OfficeStaffCan;
+    default:
+      throw new AppError(StatusCodes.BAD_REQUEST, "Invalid candidate role");
+  }
+};
+
+/**
+ * Get employer model based on role
+ */
+const getEmployerModel = (role: EmployerRole): any => {
+  switch (role) {
+    case EmployerRole.PROFESSIONAL_CLUB:
+      return ProfessionalClubEmp;
+    case EmployerRole.ACADEMY:
+      return AcademyEmp;
+    case EmployerRole.AMATEUR_CLUB:
+      return AmateurClubEmp;
+    case EmployerRole.CONSULTING_COMPANY:
+      return ConsultingCompanyEmp;
+    case EmployerRole.HIGH_SCHOOL:
+      return HighSchoolEmp;
+    case EmployerRole.COLLEGE_UNIVERSITY:
+      return CollegeOrUniversityEmp;
+    case EmployerRole.AGENT:
+      return AgentEmp;
+    default:
+      throw new AppError(StatusCodes.BAD_REQUEST, "Invalid employer role");
+  }
+};
 
 /**
  * Send a friend request
@@ -288,34 +357,233 @@ const getFriends = async (
   // Get total count
   const total = await FriendList.countDocuments(filter);
 
-  // Get paginated data
+  // Get paginated friend requests
   const friendRequests = await FriendList.find(filter)
-    .populate({
-      path: "senderId",
-      select: "email role userType createdAt",
-    })
-    .populate({
-      path: "receiverId",
-      select: "email role userType createdAt",
-    })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean();
 
-  // Transform data to return the friend (not the current user)
-  const data = friendRequests.map((request: any) => {
-    const friend =
-      request.senderId._id.toString() === userId
-        ? request.receiverId
-        : request.senderId;
-    
-    return {
-      _id: request._id,
-      friend,
-      friendshipDate: request.createdAt,
-    };
+  // Get friend user IDs (excluding current user)
+  const friendUserIds = friendRequests.map((request: any) => {
+    return request.senderId.toString() === userId
+      ? request.receiverId
+      : request.senderId;
   });
+
+  if (friendUserIds.length === 0) {
+    return {
+      data: [],
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: 0,
+      },
+    };
+  }
+
+  // Fetch full user details for all friends
+  const friendUsers = await User.find({
+    _id: { $in: friendUserIds },
+    isDeleted: { $ne: true },
+  }).lean();
+
+  // Create a map of user ID to user data
+  const userMap = new Map(
+    friendUsers.map((user: any) => [user._id.toString(), user])
+  );
+
+  // Prepare data structures for batch queries
+  const candidateIds: Types.ObjectId[] = [];
+  const employerIds: Types.ObjectId[] = [];
+  const usersByrole = new Map<string, any[]>();
+
+  friendUsers.forEach((user: any) => {
+    if (user.userType === "candidate") {
+      candidateIds.push(user._id);
+      const role = user.role as CandidateRole;
+      if (!usersByrole.has(role)) {
+        usersByrole.set(role, []);
+      }
+      usersByrole.get(role)!.push(user);
+    } else if (user.userType === "employer") {
+      employerIds.push(user._id);
+      const role = user.role as EmployerRole;
+      if (!usersByrole.has(role)) {
+        usersByrole.set(role, []);
+      }
+      usersByrole.get(role)!.push(user);
+    }
+  });
+
+  // Batch fetch profiles based on userType and role
+  const profilePromises = Array.from(usersByrole.entries()).map(
+    async ([role, roleUsers]) => {
+      const userType = roleUsers[0].userType;
+      const profileIds = roleUsers.map((u: any) => u.profileId).filter(Boolean);
+      
+      if (profileIds.length === 0) return [];
+
+      let model: any;
+      if (userType === "candidate") {
+        model = getCandidateModel(role as CandidateRole);
+      } else {
+        model = getEmployerModel(role as EmployerRole);
+      }
+
+      const profiles = await model.find({ _id: { $in: profileIds } }).lean();
+      return profiles;
+    }
+  );
+
+  const allProfiles = (await Promise.all(profilePromises)).flat();
+  const profileMap = new Map(
+    allProfiles.map((p: any) => [p._id.toString(), p])
+  );
+
+  // Batch fetch additional data for candidates and employers
+  const [shortlistData, friendRequestData, jobCounts, followerCounts] = await Promise.all([
+    // Shortlist data (for candidates)
+    candidateIds.length > 0
+      ? CandidateShortList.find({
+          shortlistedById: new Types.ObjectId(userId),
+          candidateId: { $in: candidateIds },
+        })
+          .select("candidateId")
+          .lean()
+      : Promise.resolve([]),
+
+    // Friend request data (for candidates)
+    candidateIds.length > 0
+      ? FriendList.find({
+          $or: [
+            { senderId: new Types.ObjectId(userId), receiverId: { $in: candidateIds } },
+            { receiverId: new Types.ObjectId(userId), senderId: { $in: candidateIds } },
+          ],
+        })
+          .select("senderId receiverId status")
+          .lean()
+      : Promise.resolve([]),
+
+    // Job counts (for employers)
+    employerIds.length > 0
+      ? Job.aggregate([
+          {
+            $match: {
+              "creator.creatorId": { $in: employerIds },
+              status: "active",
+            },
+          },
+          {
+            $group: {
+              _id: "$creator.creatorId",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+      : Promise.resolve([]),
+
+    // Follower counts (for employers)
+    employerIds.length > 0
+      ? Follow.aggregate([
+          {
+            $match: {
+              followingId: { $in: employerIds },
+            },
+          },
+          {
+            $group: {
+              _id: "$followingId",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+      : Promise.resolve([]),
+  ]);
+
+  // Create maps for quick lookup
+  const shortlistMap = new Map<string, boolean>();
+  shortlistData.forEach((item: any) => {
+    shortlistMap.set(item.candidateId.toString(), true);
+  });
+
+  const friendRequestMap = new Map<string, { status: string; type: 'sent' | 'received' }>();
+  friendRequestData.forEach((fr: any) => {
+    const isSender = fr.senderId.toString() === userId;
+    const otherUserId = isSender ? fr.receiverId.toString() : fr.senderId.toString();
+    friendRequestMap.set(otherUserId, {
+      status: fr.status,
+      type: isSender ? 'sent' : 'received',
+    });
+  });
+
+  const jobCountMap = new Map(
+    jobCounts.map((j: any) => [j._id.toString(), j.count])
+  );
+
+  const followerCountMap = new Map(
+    followerCounts.map((f: any) => [f._id.toString(), f.count])
+  );
+
+  // Get following status for employers
+  const followedIdSet = new Set<string>();
+  if (employerIds.length > 0) {
+    const followedEmployers = await Follow.find({
+      followerId: new Types.ObjectId(userId),
+      followingId: { $in: employerIds },
+    })
+      .select("followingId")
+      .lean();
+    
+    followedEmployers.forEach((f: any) => followedIdSet.add(f.followingId.toString()));
+  }
+
+  // Transform data to match employer/candidate search response format
+  const data = friendRequests.map((request: any) => {
+    const friendUserId = request.senderId.toString() === userId
+      ? request.receiverId.toString()
+      : request.senderId.toString();
+    
+    const user = userMap.get(friendUserId);
+    
+    if (!user) return null;
+
+    const profile = user.profileId ? profileMap.get(user.profileId.toString()) : null;
+    const userIdStr = user._id.toString();
+
+    // Build response based on userType
+    if (user.userType === "candidate") {
+      return {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage,
+        userType: user.userType,
+        profile,
+        isShortlisted: shortlistMap.get(userIdStr) || false,
+        friendRequestStatus: friendRequestMap.get(userIdStr) || null,
+      };
+    } else if (user.userType === "employer") {
+      return {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage,
+        userType: user.userType,
+        profile,
+        activeJobCount: jobCountMap.get(userIdStr) || 0,
+        followerCount: followerCountMap.get(userIdStr) || 0,
+        isFollowing: followedIdSet.has(userIdStr),
+      };
+    }
+
+    return null;
+  }).filter(Boolean);
 
   const totalPages = Math.ceil(total / limit);
 
