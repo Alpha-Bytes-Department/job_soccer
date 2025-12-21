@@ -68,6 +68,7 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
     userType: "candidate",
     isDeleted: { $ne: true },
     profileId: { $exists: true, $ne: null }, // Only users with profiles
+    _id: { $ne: userId ? new Types.ObjectId(userId) : undefined }, // Exclude self if authenticated
   };
 
   // Filter by candidate role/category if provided
@@ -204,6 +205,7 @@ const getFeaturedCandidates = async (userId?:string) => {
         role: category,
         isDeleted: { $ne: true },
         profileId: { $exists: true, $ne: null },
+        _id: { $ne: userId ? new Types.ObjectId(userId) : undefined }, // Exclude self if authenticated
       })
         .limit(4)
         .lean();
