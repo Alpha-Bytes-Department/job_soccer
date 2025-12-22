@@ -9,6 +9,8 @@ export type TAgent = {
   socialMedia: string;
   website: string;
   fifaLicenseNumber: string;
+  averageRating: number;
+  totalRatings: number;
 };
 const agentEmpSchema = new Schema<TAgent>({
   companyName: {
@@ -39,6 +41,17 @@ const agentEmpSchema = new Schema<TAgent>({
   fifaLicenseNumber: {
     type: String,
     required: true,
+  },
+  averageRating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5,
+  },
+  totalRatings: {
+    type: Number,
+    default: 0,
+    min: 0,
   },
 });
 

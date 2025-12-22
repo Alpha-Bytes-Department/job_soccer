@@ -22,6 +22,8 @@ import { EmailSubscriptionRoutes } from "../modules/emailSubscription/emailSubsc
 import { DashboardRoutes } from "../modules/dashboard/dashboard.route";
 import { ProfileViewRoutes } from "../modules/profileView/profileView.route";
 import { NotificationRoutes } from "../modules/notification/notification.route";
+import { AgentRatingRoutes } from "../modules/agentRating/agentRating.route";
+import { AgentHiringRoutes } from "../modules/agentHiring/agentHiring.route";
 
 const router: Router = express.Router();
 
@@ -117,6 +119,14 @@ const apiRoutes = [
   {
     path: "/notifications",
     route: NotificationRoutes,
+  },
+  {
+    path: "/agent-rating",
+    route: AgentRatingRoutes,
+  },
+  {
+    path: "/agent-hiring",
+    route: AgentHiringRoutes,
   },
 ];
 
