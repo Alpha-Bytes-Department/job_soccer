@@ -5,6 +5,8 @@ import { StatusCodes } from "http-status-codes";
 import { MessageService } from "./message.service";
 import { MessageType } from "./message.interface";
 import AppError from "../../errors/AppError";
+import { io } from "../../socket/socketServer";
+import { onlineUsers } from "../../socket/socketInit";
 
 const createMessage = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
@@ -38,6 +40,23 @@ const createMessage = catchAsync(async (req: Request, res: Response) => {
     mediaUrl,
     messageType,
   });
+
+  // Emit Socket.IO events for real-time delivery
+  // Find receiver's socket and send message
+  const receiverSocketId = Array.from(onlineUsers.values()).find(
+    (user) => user.userId === receiverId
+  )?.socketId;
+
+  if (receiverSocketId) {
+    io.to(receiverSocketId).emit("new_message", {
+      message,
+    });
+    
+    // Notify receiver to update chat list
+    io.to(receiverSocketId).emit("chat_updated", {
+      chatId,
+    });
+  }
 
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
