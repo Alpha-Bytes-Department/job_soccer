@@ -3,18 +3,33 @@ import catchAsync from "../../shared/util/catchAsync";
 import sendResponse from "../../shared/util/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import { MessageService } from "./message.service";
+import { MessageType } from "./message.interface";
+import AppError from "../../errors/AppError";
 
 const createMessage = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const { chatId, receiverId, content, mediaUrl, messageType } = req.body;
-console.log(`--------------------${{
-    chatId,
-    senderId: userId,
-    receiverId,
-    content,
-    mediaUrl,
-    messageType,
-  }}---------------------------`);
+  let { chatId, receiverId, content, mediaUrl, messageType } = req.body;
+
+  // Handle uploaded image file
+  if (req.files && "image" in req.files && req.files.image[0]) {
+    const imageFile = req.files.image[0];
+    mediaUrl = imageFile.path.replace('/app/uploads', '').replace(/\\/g, '/');
+    messageType = MessageType.IMAGE;
+  }
+
+  // Validate that at least one of content, mediaUrl, or uploaded image is provided
+  if (!content && !mediaUrl) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "At least one of content, mediaUrl, or image file must be provided"
+    );
+  }
+
+  // Set default messageType if not provided
+  if (!messageType) {
+    messageType = content && !mediaUrl ? MessageType.TEXT : MessageType.IMAGE;
+  }
+
   const message = await MessageService.createMessage({
     chatId,
     senderId: userId,

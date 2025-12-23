@@ -2,6 +2,7 @@ import { Router } from "express";
 import auth from "../../shared/middlewares/auth";
 import { MessageController } from "./message.controller";
 import validateRequest from "../../shared/middlewares/validateRequest";
+import fileUploadHandler from "../../shared/middlewares/fileUploadHandler";
 import { z } from "zod";
 import { MessageType } from "./message.interface";
 
@@ -16,13 +17,8 @@ const createMessageSchema = z.object({
     receiverId: z.string().min(1, "Receiver ID is required"),
     content: z.string().max(5000, "Message content cannot exceed 5000 characters").optional(),
     mediaUrl: z.string().url("Invalid media URL").optional(),
-    messageType: z.nativeEnum(MessageType).default(MessageType.TEXT),
-  }).refine(
-    (data) => data.content || data.mediaUrl,
-    {
-      message: "Either content or mediaUrl must be provided",
-    }
-  ),
+    messageType: z.nativeEnum(MessageType).optional(),
+  }),
 });
 
 const searchMessagesSchema = z.object({
@@ -39,14 +35,16 @@ const searchMessagesSchema = z.object({
  *   - receiverId: string (required) - The ID of the message receiver
  *   - content: string (optional, max 5000 chars) - Text message content
  *   - mediaUrl: string (optional) - URL of media attachment
- *   - messageType: MessageType (default: TEXT) - Type of message (TEXT, IMAGE, VIDEO, AUDIO, FILE)
- * Note: Either content or mediaUrl must be provided
+ *   - image: file (optional) - Image file upload (will be converted to WebP)
+ *   - messageType: MessageType (optional) - Type of message (TEXT, IMAGE, VIDEO, FILE)
+ * Note: At least one of content, mediaUrl, or image must be provided
  * Auth: Required (candidate, employer)
  * Response: Created message object
  */
 router.post(
   "/send",
   auth("candidate", "employer"),
+  fileUploadHandler,
   validateRequest(createMessageSchema),
   MessageController.createMessage
 );
