@@ -255,7 +255,15 @@ const createUser = async (user: TCreateUser) => {
 const loginUser = async (payload: TLoginData) => {
   const { email, password, loginProvider } = payload;
 
-  if (loginProvider === LoginProvider.LINKEDIN) {
+  // Ensure loginProvider is valid
+  if (!loginProvider) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Login provider is required"
+    );
+  }
+
+  if (loginProvider === LoginProvider.LINKEDIN || loginProvider === "linkedin") {
     // For LinkedIn, we just want to ensure user exists and return token
     const existingUser = await User.findOne({ email });
 
@@ -301,9 +309,7 @@ const loginUser = async (payload: TLoginData) => {
 
       return createUser(createUserPayload);
     }
-  }
-
-  if (loginProvider === LoginProvider.EMAIL) {
+  } else if (loginProvider === LoginProvider.EMAIL || loginProvider === "email") {
     if (!password) {
       throw new AppError(StatusCodes.BAD_REQUEST, "Password is required");
     }
@@ -340,6 +346,11 @@ const loginUser = async (payload: TLoginData) => {
       config.jwt.jwt_expire_in || "1d"
     );
     return { accessToken, user: isExistingUser };
+  } else {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Invalid login provider. Must be 'email' or 'linkedin'"
+    );
   }
 };
 
