@@ -255,7 +255,7 @@ const getReceivedFriendRequests = async (
   const data = await FriendList.find(filter)
     .populate({
       path: "senderId",
-      select: "email role userType createdAt",
+      select: "email role userType createdAt firstName lastName profileImage",
     })
     .sort({ createdAt: -1 })
     .skip(skip)

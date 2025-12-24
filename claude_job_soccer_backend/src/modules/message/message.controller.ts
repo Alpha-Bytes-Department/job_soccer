@@ -40,6 +40,7 @@ const createMessage = catchAsync(async (req: Request, res: Response) => {
     mediaUrl,
     messageType,
   });
+  console.log("res------->",message);
 
   // Emit Socket.IO events for real-time delivery
   // Find receiver's socket and send message

@@ -398,13 +398,18 @@ const getEmployerById = async (id: string, userId?: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "Profile details not found");
   }
 
-  // Check if authenticated user is following this employer
-  const isFollowing = userId
-    ? await Follow.exists({
-        followerId: new Types.ObjectId(userId),
-        followingId: new Types.ObjectId(id),
-      }).then((result) => !!result)
-    : false;
+  // Check if authenticated user is following this employer and get follower count
+  const [isFollowing, followerCount] = await Promise.all([
+    userId
+      ? Follow.exists({
+          followerId: new Types.ObjectId(userId),
+          followingId: new Types.ObjectId(id),
+        }).then((result) => !!result)
+      : Promise.resolve(false),
+    Follow.countDocuments({
+      followingId: new Types.ObjectId(id),
+    }),
+  ]);
 
   return {
     _id: user._id,
@@ -417,6 +422,7 @@ const getEmployerById = async (id: string, userId?: string) => {
     isVerified: user.isVerified,
     profile,
     isFollowing,
+    followerCount,
   };
 };
 
