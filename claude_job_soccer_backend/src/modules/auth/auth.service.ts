@@ -74,12 +74,13 @@ const createUser = async (user: TCreateUser) => {
   // Use transaction to prevent race conditions
   const session = await mongoose.startSession();
   try {
-    await session.withTransaction(async () => {
+    const result = await session.withTransaction(async () => {
       const existingUser = await User.findOne({ email: user.email }).session(
         session
       );
 
       if (user.loginProvider === LoginProvider.LINKEDIN) {
+        console.log("login provider under create user data", LoginProvider.LINKEDIN);
         if (existingUser) {
           // Return existing user for LinkedIn
           const accessToken = jwtHelper.createToken(
@@ -147,6 +148,7 @@ const createUser = async (user: TCreateUser) => {
           (config.jwt.jwt_secret as Secret) || "JWT_SECRET",
           config.jwt.jwt_expire_in || "1d"
         );
+        console.log({ accessToken, user: newUser[0] });
 
         return { accessToken, user: newUser[0] };
       } else {
@@ -246,6 +248,8 @@ const createUser = async (user: TCreateUser) => {
         return { user: newUser[0], accessToken };
       }
     });
+    
+    return result;
   } finally {
     await session.endSession();
   }
@@ -263,7 +267,7 @@ const loginUser = async (payload: TLoginData) => {
     );
   }
 
-  if (loginProvider === LoginProvider.LINKEDIN || loginProvider === "linkedin") {
+  if (loginProvider === LoginProvider.LINKEDIN ) {
     // For LinkedIn, we just want to ensure user exists and return token
     const existingUser = await User.findOne({ email });
 
@@ -276,6 +280,7 @@ const loginUser = async (payload: TLoginData) => {
           `This account was created using ${auth.loginProvider}. Please login with ${auth.loginProvider}.`
         );
       }
+      
 
       // User exists, return token
       const accessToken = jwtHelper.createToken(
@@ -288,12 +293,16 @@ const loginUser = async (payload: TLoginData) => {
         (config.jwt.jwt_secret as Secret) || "JWT_SECRET",
         config.jwt.jwt_expire_in || "1d"
       );
+      console.log({ accessToken, user: existingUser });
       return { accessToken, user: existingUser };
     } else {
+
+
+
       if (!payload.role) {
         throw new AppError(
           StatusCodes.BAD_REQUEST,
-          "Role is required for LinkedIn signup"
+          "Account does not exist. Please sign up first."
         );
       }
 

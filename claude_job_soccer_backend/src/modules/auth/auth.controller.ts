@@ -7,8 +7,10 @@ import { AuthService } from "./auth.service";
 // Create user (signup)
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const userData = req.body;
+  console.log("user data when signup ------------------>", userData);
   const result = await AuthService.createUser(userData);
 
+  
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.CREATED,
@@ -33,6 +35,8 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
 // Login user
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const loginData = req.body;
+  console.log("user data when login ------------------>", loginData);
+
   const result = await AuthService.loginUser(loginData);
 
   sendResponse(res, {
@@ -74,8 +78,8 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 const changePassword = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
   const passwordData = req.body;
-  console.log("user",user);
-  
+  console.log("user", user);
+
   await AuthService.changePasswordToDB(user, passwordData);
 
   sendResponse(res, {
