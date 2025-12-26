@@ -598,8 +598,8 @@ const getJobCountsByRole = async () => {
   const allCandidateRoles = [
     "Professional Player",
     "Amateur Player",
-    "High School",
-    "College/University",
+    "High School Player",
+    "College/University Player",
     "On field staff",
     "Office Staff",
   ];

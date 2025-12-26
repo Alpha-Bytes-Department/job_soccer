@@ -208,7 +208,7 @@ export const cleanupUploadedFiles = async (
  */
 export const validatePlayerVideos = async (
   videoFiles: Express.Multer.File[],
-  playerType: "Professional Player" | "Amateur Player" | "High School" | "College/University"
+  playerType: "Professional Player" | "Amateur Player" | "High School Player" | "College/University Player"
 ): Promise<IVideoValidationResult> => {
   // Players need exactly 2 videos
   if (videoFiles.length !== 2) {

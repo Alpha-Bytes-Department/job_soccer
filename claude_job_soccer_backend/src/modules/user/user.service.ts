@@ -457,7 +457,7 @@ const addUserProfile = async (payload: {
 
         const highSchoolValidation = await validatePlayerVideos(
           videoFiles,
-          "High School"
+          "High School Player"
         );
         if (!highSchoolValidation.isValid) {
           await cleanupUploadedFiles(videoFiles);
@@ -484,13 +484,13 @@ const addUserProfile = async (payload: {
         if (videoFiles.length === 0) {
           throw new AppError(
             StatusCodes.BAD_REQUEST,
-            "College/University players must upload exactly 2 Highlights videos"
+            "College/University Player players must upload exactly 2 Highlights videos"
           );
         }
 
         const collegeValidation = await validatePlayerVideos(
           videoFiles,
-          "College/University"
+          "College/University Player"
         );
         if (!collegeValidation.isValid) {
           await cleanupUploadedFiles(videoFiles);
@@ -791,7 +791,7 @@ const updateUserProfile = async (payload: {
         if (videoFiles.length > 0) {
           const validation = await validatePlayerVideos(
             videoFiles,
-            "High School"
+            "High School Player"
           );
           if (!validation.isValid) {
             await cleanupUploadedFiles(videoFiles);
@@ -814,7 +814,7 @@ const updateUserProfile = async (payload: {
         if (videoFiles.length > 0) {
           const validation = await validatePlayerVideos(
             videoFiles,
-            "College/University"
+            "College/University Player"
           );
           if (!validation.isValid) {
             await cleanupUploadedFiles(videoFiles);

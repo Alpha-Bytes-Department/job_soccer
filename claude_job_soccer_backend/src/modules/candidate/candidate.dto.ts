@@ -10,8 +10,8 @@ const searchCandidatesDto = z.object({
       .enum([
         "Professional Player",
         "Amateur Player",
-        "High School",
-        "College/University",
+        "High School Player",
+        "College/University Player",
         "On field staff",
         "Office Staff",
       ])

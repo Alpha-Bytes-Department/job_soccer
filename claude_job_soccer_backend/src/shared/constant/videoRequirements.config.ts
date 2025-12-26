@@ -237,9 +237,9 @@ export const VIDEO_REQUIREMENTS: Record<string, IPositionVideoConfig> = {
     forbiddenVideoTypes: [VideoType.PRE_RECORDED_INTERVIEW], // Players don't need interview
   },
 
-  // HIGH SCHOOL & COLLEGE/UNIVERSITY (Student Players)
-  "High School": {
-    position: "High School",
+  // HIGH SCHOOL Player & COLLEGE/UNIVERSITY Player (Student Players)
+  "High School Player": {
+    position: "High School Player",
     totalVideos: 2,
     maxDuration: 180,
     requiredVideoTypes: [
@@ -249,8 +249,8 @@ export const VIDEO_REQUIREMENTS: Record<string, IPositionVideoConfig> = {
     forbiddenVideoTypes: [VideoType.PRE_RECORDED_INTERVIEW], // Players don't need interview
   },
 
-  "College/University": {
-    position: "College/University",
+  "College/University Player": {
+    position: "College/University Player",
     totalVideos: 2,
     maxDuration: 180,
     requiredVideoTypes: [
@@ -286,8 +286,8 @@ export const isPlayer = (position: string): boolean => {
   return (
     position === "Professional Player" ||
     position === "Amateur Player" ||
-    position === "High School" ||
-    position === "College/University"
+    position === "High School Player" ||
+    position === "College/University Player"
   );
 };
 

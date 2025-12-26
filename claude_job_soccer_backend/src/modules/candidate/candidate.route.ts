@@ -25,8 +25,8 @@ router.get("/search", optionalAuth, CandidateController.searchCandidates);
  * {
  *   "ProfessionalPlayer": [{...}, {...}],
  *   "AmateurPlayer": [{...}, {...}],
- *   "HighSchool": [{...}, {...}],
- *   "College/University": [{...}, {...}],
+ *   "HighSchool Player": [{...}, {...}],
+ *   "College/University Player": [{...}, {...}],
  *   "OnFieldStaff": [{...}, {...}],
  *   "OfficeStaff": [{...}, {...}]
  * }

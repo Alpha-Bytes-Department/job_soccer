@@ -8,8 +8,8 @@ export enum UserType {
 export enum CandidateRole {
   PROFESSIONAL_PLAYER = "Professional Player",
   AMATEUR_PLAYER = "Amateur Player",
-  HIGH_SCHOOL = "High School",
-  COLLEGE_UNIVERSITY = "College/University",
+  HIGH_SCHOOL = "High School Player",
+  COLLEGE_UNIVERSITY = "College/University Player",
   ON_FIELD_STAFF = "On field staff",
   OFFICE_STAFF = "Office Staff",
 }
