@@ -8,42 +8,13 @@ import { User } from "../user/user.model";
 import { CandidateRole } from "../user/user.interface";
 import { calculateJobMatchScore } from "../../shared/openai/jobMatching.service";
 
-// Import Candidate Models for profile details
-import { AmateurPlayerCan } from "../candidate/amateurPlayerCan/amateurPlayerCan.model";
-import { ProfessionalPlayerCan } from "../candidate/professionalPlayerCan/professionalPlayerCan.model";
-import { OnFieldStaffCan } from "../candidate/onFieldStaffCan/onFieldStaffCan.model";
-import { OfficeStaffCan } from "../candidate/officeStaffCan/officeStaffCan.model";
-import { HighSchoolCan } from "../candidate/highSchoolCan/highSchoolCan.model";
-import { CollegeOrUniversity } from "../candidate/collegeOrUniversityCan/collegeOrUniversityCan.model";
-
 // Import Supplementary Data Models
 import { CandidateExperience } from "../candidateExperience/candidateExperience.model";
 import { CandidateEducation } from "../candidateEducation/candidateEducation.model";
 import { CandidateLicenseAndCertification } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.model";
 import { CandidateEducationService } from "../candidateEducation/candidateEducation.service";
 import { CandidateLicensesAndCertificationService } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.service";
-
-/**
- * Get candidate model based on role
- */
-const getCandidateModel = (role: CandidateRole): any => {
-  switch (role) {
-    case CandidateRole.PROFESSIONAL_PLAYER:
-      return ProfessionalPlayerCan;
-    case CandidateRole.AMATEUR_PLAYER:
-      return AmateurPlayerCan;
-    case CandidateRole.HIGH_SCHOOL:
-      return HighSchoolCan;
-    case CandidateRole.COLLEGE_UNIVERSITY:
-      return CollegeOrUniversity;
-    case CandidateRole.ON_FIELD_STAFF:
-      return OnFieldStaffCan;
-    case CandidateRole.OFFICE_STAFF:
-      return OfficeStaffCan;
-    default:
-      throw new AppError(StatusCodes.BAD_REQUEST, "Invalid candidate role");
-  }
-};
+import { getCandidateModel } from "../../shared/util/getCandidateModel";
 
 /**
  * Calculate total years of experience from experience records
@@ -300,10 +271,7 @@ const getApplicationsByJob = async (
     .sort(sortBy)
     .skip(skip)
     .limit(limit)
-    .populate(
-      "candidateId",
-      "firstName lastName email profileImage role"
-    )
+    .populate("candidateId", "firstName lastName email profileImage role")
     .lean();
 
   // Get total count for pagination

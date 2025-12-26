@@ -2,42 +2,16 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import { User } from "../user/user.model";
 import { CandidateRole } from "../user/user.interface";
-import { SearchHistoryService, SearchEntityType } from "../searchHistory/searchHistory.service";
+import {
+  SearchHistoryService,
+  SearchEntityType,
+} from "../searchHistory/searchHistory.service";
 import { Types } from "mongoose";
-
-// Import Candidate Models
-import { AmateurPlayerCan } from "./amateurPlayerCan/amateurPlayerCan.model";
-import { ProfessionalPlayerCan } from "./professionalPlayerCan/professionalPlayerCan.model";
-import { OnFieldStaffCan } from "./onFieldStaffCan/onFieldStaffCan.model";
-import { OfficeStaffCan } from "./officeStaffCan/officeStaffCan.model";
-import { HighSchoolCan } from "./highSchoolCan/highSchoolCan.model";
-import { CollegeOrUniversity } from "./collegeOrUniversityCan/collegeOrUniversityCan.model";
 
 // Import models for filtering
 import { CandidateShortList } from "../candidateShortList/candidateShortList.model";
 import { FriendList } from "../friendlist/friendlist.model";
-
-/**
- * Get candidate model based on role
- */
-const getCandidateModel = (role: CandidateRole): any => {
-  switch (role) {
-    case CandidateRole.PROFESSIONAL_PLAYER:
-      return ProfessionalPlayerCan;
-    case CandidateRole.AMATEUR_PLAYER:
-      return AmateurPlayerCan;
-    case CandidateRole.HIGH_SCHOOL:
-      return HighSchoolCan;
-    case CandidateRole.COLLEGE_UNIVERSITY:
-      return CollegeOrUniversity;
-    case CandidateRole.ON_FIELD_STAFF:
-      return OnFieldStaffCan;
-    case CandidateRole.OFFICE_STAFF:
-      return OfficeStaffCan;
-    default:
-      throw new AppError(StatusCodes.BAD_REQUEST, "Invalid candidate role");
-  }
-};
+import { getCandidateModel } from "../../shared/util/getCandidateModel";
 
 /**
  * Search candidates by name, category, and country
@@ -45,22 +19,22 @@ const getCandidateModel = (role: CandidateRole): any => {
  * When authenticated, includes relationship fields:
  * 1. isShortlisted - Whether the candidate is shortlisted by the current user
  * 2. friendRequestStatus - Friend request status and type (sent/received) from user's perspective
- * 
+ *
  * @param query - Query parameters for filtering
  * @param userId - Optional user ID for authenticated user context
  */
-const searchCandidates = async (query: Record<string, unknown>, userId?: string) => {
-  const {
-    searchTerm,
-    role,
-    country,
-    page = 1,
-    limit = 10,
-  } = query;
+const searchCandidates = async (
+  query: Record<string, unknown>,
+  userId?: string
+) => {
+  const { searchTerm, role, country, page = 1, limit = 10 } = query;
 
   // Record search term for history tracking
   if (searchTerm) {
-    await SearchHistoryService.recordSearch(SearchEntityType.CANDIDATE, searchTerm as string);
+    await SearchHistoryService.recordSearch(
+      SearchEntityType.CANDIDATE,
+      searchTerm as string
+    );
   }
 
   // Build base user query for candidates only
@@ -92,10 +66,13 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
 
   // Batch fetch relationship data for performance (only if user is authenticated)
   let shortlistMap = new Map<string, boolean>();
-  let friendRequestMap = new Map<string, { status: string; type: 'sent' | 'received' }>();
+  let friendRequestMap = new Map<
+    string,
+    { status: string; type: "sent" | "received" }
+  >();
 
   if (userId && users.length > 0) {
-    const userIds = users.map(u => u._id);
+    const userIds = users.map((u) => u._id);
 
     // Batch fetch shortlist data
     const shortlisted = await CandidateShortList.find({
@@ -105,7 +82,7 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
       .select("candidateId")
       .lean();
 
-    shortlisted.forEach(item => {
+    shortlisted.forEach((item) => {
       shortlistMap.set(item.candidateId.toString(), true);
     });
 
@@ -119,13 +96,15 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
       .select("senderId receiverId status")
       .lean();
 
-    friendRequests.forEach(fr => {
+    friendRequests.forEach((fr) => {
       const isSender = fr.senderId.toString() === userId;
-      const otherUserId = isSender ? fr.receiverId.toString() : fr.senderId.toString();
-      
+      const otherUserId = isSender
+        ? fr.receiverId.toString()
+        : fr.senderId.toString();
+
       friendRequestMap.set(otherUserId, {
         status: fr.status,
-        type: isSender ? 'sent' : 'received',
+        type: isSender ? "sent" : "received",
       });
     });
   }
@@ -186,7 +165,7 @@ const searchCandidates = async (query: Record<string, unknown>, userId?: string)
  * Returns max 4 candidates per category
  * When authenticated, includes relationship fields for each candidate
  */
-const getFeaturedCandidates = async (userId?:string) => {
+const getFeaturedCandidates = async (userId?: string) => {
   const categories = [
     CandidateRole.PROFESSIONAL_PLAYER,
     CandidateRole.AMATEUR_PLAYER,
@@ -212,10 +191,13 @@ const getFeaturedCandidates = async (userId?:string) => {
 
       // Batch fetch relationship data for performance (only if user is authenticated)
       let shortlistMap = new Map<string, boolean>();
-      let friendRequestMap = new Map<string, { status: string; type: 'sent' | 'received' }>();
+      let friendRequestMap = new Map<
+        string,
+        { status: string; type: "sent" | "received" }
+      >();
 
       if (userId && users.length > 0) {
-        const userIds = users.map(u => u._id);
+        const userIds = users.map((u) => u._id);
 
         // Batch fetch shortlist data
         const shortlisted = await CandidateShortList.find({
@@ -225,27 +207,35 @@ const getFeaturedCandidates = async (userId?:string) => {
           .select("candidateId")
           .lean();
 
-        shortlisted.forEach(item => {
+        shortlisted.forEach((item) => {
           shortlistMap.set(item.candidateId.toString(), true);
         });
 
         // Batch fetch friend request data
         const friendRequests = await FriendList.find({
           $or: [
-            { senderId: new Types.ObjectId(userId), receiverId: { $in: userIds } },
-            { receiverId: new Types.ObjectId(userId), senderId: { $in: userIds } },
+            {
+              senderId: new Types.ObjectId(userId),
+              receiverId: { $in: userIds },
+            },
+            {
+              receiverId: new Types.ObjectId(userId),
+              senderId: { $in: userIds },
+            },
           ],
         })
           .select("senderId receiverId status")
           .lean();
 
-        friendRequests.forEach(fr => {
+        friendRequests.forEach((fr) => {
           const isSender = fr.senderId.toString() === userId;
-          const otherUserId = isSender ? fr.receiverId.toString() : fr.senderId.toString();
-          
+          const otherUserId = isSender
+            ? fr.receiverId.toString()
+            : fr.senderId.toString();
+
           friendRequestMap.set(otherUserId, {
             status: fr.status,
-            type: isSender ? 'sent' : 'received',
+            type: isSender ? "sent" : "received",
           });
         });
       }
@@ -314,7 +304,10 @@ const getCandidateById = async (id: string, userId?: string) => {
 
   // Fetch relationship data if user is authenticated
   let isShortlisted = false;
-  let friendRequestStatus: { status: string; type: 'sent' | 'received' } | null = null;
+  let friendRequestStatus: {
+    status: string;
+    type: "sent" | "received";
+  } | null = null;
 
   if (userId) {
     // Check if shortlisted
@@ -339,7 +332,7 @@ const getCandidateById = async (id: string, userId?: string) => {
       const isSender = friendRequest.senderId.toString() === userId;
       friendRequestStatus = {
         status: friendRequest.status,
-        type: isSender ? 'sent' : 'received',
+        type: isSender ? "sent" : "received",
       };
     }
   }
@@ -367,4 +360,3 @@ export const CandidateServices = {
   getFeaturedCandidates,
   getCandidateById,
 };
-

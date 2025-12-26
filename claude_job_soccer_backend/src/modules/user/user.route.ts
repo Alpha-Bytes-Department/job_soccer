@@ -4,6 +4,7 @@ import { UserValidation } from "./user.dto";
 import fileUploadHandler from "../../shared/middlewares/fileUploadHandler";
 import auth from "../../shared/middlewares/auth";
 import validateRequest from "../../shared/middlewares/validateRequest";
+import optionalAuth from "../../shared/middlewares/optionalAuth";
 
 const router = express.Router();
 
@@ -33,7 +34,7 @@ router.get("/me", auth(), UserController.getMe);
  *   - id: string (required) - The ID of the user
  * Response: User object with profile details
  */
-router.get("/:id", UserController.getUserById);
+router.get("/:id",optionalAuth, UserController.getUserById);
 
 /**
  * POST /api/v1/user/profile

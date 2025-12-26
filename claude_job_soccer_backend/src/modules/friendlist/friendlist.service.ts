@@ -6,14 +6,6 @@ import { StatusCodes } from "http-status-codes";
 import { User } from "../user/user.model";
 import { CandidateRole, EmployerRole } from "../user/user.interface";
 
-// Import Candidate Models
-import { AmateurPlayerCan } from "../candidate/amateurPlayerCan/amateurPlayerCan.model";
-import { ProfessionalPlayerCan } from "../candidate/professionalPlayerCan/professionalPlayerCan.model";
-import { OnFieldStaffCan } from "../candidate/onFieldStaffCan/onFieldStaffCan.model";
-import { OfficeStaffCan } from "../candidate/officeStaffCan/officeStaffCan.model";
-import { HighSchoolCan } from "../candidate/highSchoolCan/highSchoolCan.model";
-import { CollegeOrUniversity } from "../candidate/collegeOrUniversityCan/collegeOrUniversityCan.model";
-
 // Import Employer Models
 import { AcademyEmp } from "../employer/academyEmp/academyEmp.model";
 import { AgentEmp } from "../employer/agentEmp/agentEmp.model";
@@ -27,28 +19,7 @@ import { ProfessionalClubEmp } from "../employer/professionalClubEmp/professiona
 import { CandidateShortList } from "../candidateShortList/candidateShortList.model";
 import { Follow } from "../follow/follow.model";
 import { Job } from "../Job/job.model";
-
-/**
- * Get candidate model based on role
- */
-const getCandidateModel = (role: CandidateRole): any => {
-  switch (role) {
-    case CandidateRole.PROFESSIONAL_PLAYER:
-      return ProfessionalPlayerCan;
-    case CandidateRole.AMATEUR_PLAYER:
-      return AmateurPlayerCan;
-    case CandidateRole.HIGH_SCHOOL:
-      return HighSchoolCan;
-    case CandidateRole.COLLEGE_UNIVERSITY:
-      return CollegeOrUniversity;
-    case CandidateRole.ON_FIELD_STAFF:
-      return OnFieldStaffCan;
-    case CandidateRole.OFFICE_STAFF:
-      return OfficeStaffCan;
-    default:
-      throw new AppError(StatusCodes.BAD_REQUEST, "Invalid candidate role");
-  }
-};
+import { getCandidateModel } from "../../shared/util/getCandidateModel";
 
 /**
  * Get employer model based on role
@@ -422,7 +393,7 @@ const getFriends = async (
     async ([role, roleUsers]) => {
       const userType = roleUsers[0].userType;
       const profileIds = roleUsers.map((u: any) => u.profileId).filter(Boolean);
-      
+
       if (profileIds.length === 0) return [];
 
       let model: any;
@@ -443,64 +414,71 @@ const getFriends = async (
   );
 
   // Batch fetch additional data for candidates and employers
-  const [shortlistData, friendRequestData, jobCounts, followerCounts] = await Promise.all([
-    // Shortlist data (for candidates)
-    candidateIds.length > 0
-      ? CandidateShortList.find({
-          shortlistedById: new Types.ObjectId(userId),
-          candidateId: { $in: candidateIds },
-        })
-          .select("candidateId")
-          .lean()
-      : Promise.resolve([]),
+  const [shortlistData, friendRequestData, jobCounts, followerCounts] =
+    await Promise.all([
+      // Shortlist data (for candidates)
+      candidateIds.length > 0
+        ? CandidateShortList.find({
+            shortlistedById: new Types.ObjectId(userId),
+            candidateId: { $in: candidateIds },
+          })
+            .select("candidateId")
+            .lean()
+        : Promise.resolve([]),
 
-    // Friend request data (for candidates)
-    candidateIds.length > 0
-      ? FriendList.find({
-          $or: [
-            { senderId: new Types.ObjectId(userId), receiverId: { $in: candidateIds } },
-            { receiverId: new Types.ObjectId(userId), senderId: { $in: candidateIds } },
-          ],
-        })
-          .select("senderId receiverId status")
-          .lean()
-      : Promise.resolve([]),
+      // Friend request data (for candidates)
+      candidateIds.length > 0
+        ? FriendList.find({
+            $or: [
+              {
+                senderId: new Types.ObjectId(userId),
+                receiverId: { $in: candidateIds },
+              },
+              {
+                receiverId: new Types.ObjectId(userId),
+                senderId: { $in: candidateIds },
+              },
+            ],
+          })
+            .select("senderId receiverId status")
+            .lean()
+        : Promise.resolve([]),
 
-    // Job counts (for employers)
-    employerIds.length > 0
-      ? Job.aggregate([
-          {
-            $match: {
-              "creator.creatorId": { $in: employerIds },
-              status: "active",
+      // Job counts (for employers)
+      employerIds.length > 0
+        ? Job.aggregate([
+            {
+              $match: {
+                "creator.creatorId": { $in: employerIds },
+                status: "active",
+              },
             },
-          },
-          {
-            $group: {
-              _id: "$creator.creatorId",
-              count: { $sum: 1 },
+            {
+              $group: {
+                _id: "$creator.creatorId",
+                count: { $sum: 1 },
+              },
             },
-          },
-        ])
-      : Promise.resolve([]),
+          ])
+        : Promise.resolve([]),
 
-    // Follower counts (for employers)
-    employerIds.length > 0
-      ? Follow.aggregate([
-          {
-            $match: {
-              followingId: { $in: employerIds },
+      // Follower counts (for employers)
+      employerIds.length > 0
+        ? Follow.aggregate([
+            {
+              $match: {
+                followingId: { $in: employerIds },
+              },
             },
-          },
-          {
-            $group: {
-              _id: "$followingId",
-              count: { $sum: 1 },
+            {
+              $group: {
+                _id: "$followingId",
+                count: { $sum: 1 },
+              },
             },
-          },
-        ])
-      : Promise.resolve([]),
-  ]);
+          ])
+        : Promise.resolve([]),
+    ]);
 
   // Create maps for quick lookup
   const shortlistMap = new Map<string, boolean>();
@@ -508,13 +486,18 @@ const getFriends = async (
     shortlistMap.set(item.candidateId.toString(), true);
   });
 
-  const friendRequestMap = new Map<string, { status: string; type: 'sent' | 'received' }>();
+  const friendRequestMap = new Map<
+    string,
+    { status: string; type: "sent" | "received" }
+  >();
   friendRequestData.forEach((fr: any) => {
     const isSender = fr.senderId.toString() === userId;
-    const otherUserId = isSender ? fr.receiverId.toString() : fr.senderId.toString();
+    const otherUserId = isSender
+      ? fr.receiverId.toString()
+      : fr.senderId.toString();
     friendRequestMap.set(otherUserId, {
       status: fr.status,
-      type: isSender ? 'sent' : 'received',
+      type: isSender ? "sent" : "received",
     });
   });
 
@@ -535,55 +518,62 @@ const getFriends = async (
     })
       .select("followingId")
       .lean();
-    
-    followedEmployers.forEach((f: any) => followedIdSet.add(f.followingId.toString()));
+
+    followedEmployers.forEach((f: any) =>
+      followedIdSet.add(f.followingId.toString())
+    );
   }
 
   // Transform data to match employer/candidate search response format
-  const data = friendRequests.map((request: any) => {
-    const friendUserId = request.senderId.toString() === userId
-      ? request.receiverId.toString()
-      : request.senderId.toString();
-    
-    const user = userMap.get(friendUserId);
-    
-    if (!user) return null;
+  const data = friendRequests
+    .map((request: any) => {
+      const friendUserId =
+        request.senderId.toString() === userId
+          ? request.receiverId.toString()
+          : request.senderId.toString();
 
-    const profile = user.profileId ? profileMap.get(user.profileId.toString()) : null;
-    const userIdStr = user._id.toString();
+      const user = userMap.get(friendUserId);
 
-    // Build response based on userType
-    if (user.userType === "candidate") {
-      return {
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        profileImage: user.profileImage,
-        userType: user.userType,
-        profile,
-        isShortlisted: shortlistMap.get(userIdStr) || false,
-        friendRequestStatus: friendRequestMap.get(userIdStr) || null,
-      };
-    } else if (user.userType === "employer") {
-      return {
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        profileImage: user.profileImage,
-        userType: user.userType,
-        profile,
-        activeJobCount: jobCountMap.get(userIdStr) || 0,
-        followerCount: followerCountMap.get(userIdStr) || 0,
-        isFollowing: followedIdSet.has(userIdStr),
-      };
-    }
+      if (!user) return null;
 
-    return null;
-  }).filter(Boolean);
+      const profile = user.profileId
+        ? profileMap.get(user.profileId.toString())
+        : null;
+      const userIdStr = user._id.toString();
+
+      // Build response based on userType
+      if (user.userType === "candidate") {
+        return {
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          profileImage: user.profileImage,
+          userType: user.userType,
+          profile,
+          isShortlisted: shortlistMap.get(userIdStr) || false,
+          friendRequestStatus: friendRequestMap.get(userIdStr) || null,
+        };
+      } else if (user.userType === "employer") {
+        return {
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          profileImage: user.profileImage,
+          userType: user.userType,
+          profile,
+          activeJobCount: jobCountMap.get(userIdStr) || 0,
+          followerCount: followerCountMap.get(userIdStr) || 0,
+          isFollowing: followedIdSet.has(userIdStr),
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
 
   const totalPages = Math.ceil(total / limit);
 

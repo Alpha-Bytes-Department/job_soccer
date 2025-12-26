@@ -23,7 +23,7 @@ router.get("/search", optionalAuth, EmployerController.searchEmployers);
  * Get featured employers grouped by category
  * Semi-private: Authenticated users get isFollowing field
  * Returns max 4 employers per category
- * Response format: 
+ * Response format:
  * {
  *   "ProfessionalClub": [{...}, {...}],
  *   "Academy": [{...}, {...}],
