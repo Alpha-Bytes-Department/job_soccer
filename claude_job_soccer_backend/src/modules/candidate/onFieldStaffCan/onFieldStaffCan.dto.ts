@@ -17,7 +17,7 @@ const createOnFieldStaffCanDto = z.object({
     nationality: z.string().trim().min(1, "Nationality is required"),
     phoneNumber: z.string().trim().min(1, "Phone number is required").optional(),
     currentClub: z.string().trim().min(1, "Current club is required"),
-    availability: z.string().trim().min(1, "Availability is required"),
+    availability: z.string().trim().min(1, "Availability is required").optional(),
     country: z.string().min(1, "Country is required"),
     league: z.string().trim().min(1, "League is required"),
     category: z.string().trim().min(1, "Category is required").optional(),
@@ -30,7 +30,7 @@ const createOnFieldStaffCanDto = z.object({
         "GK Coach",
         "Mental Coach",
         "Video Analyst Coach",
-        "Specific Offensive Coach",
+        "Specific Offensive Coach", //!TODO  it mean  "Specific Forward Coach"
         "Specific Defensive Coach",
         "Specific Technical Coach",
         "Scout",

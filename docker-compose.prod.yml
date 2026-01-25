@@ -29,12 +29,9 @@ services:
     depends_on:
       redis_claude_job_soccer:
         condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
     restart: always
     environment:
       - NODE_ENV=production
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
     # Limit container logs to prevent unbounded growth
     logging:
       driver: "json-file"
@@ -43,44 +40,7 @@ services:
         max-file: "3"
     networks:
       - claude_job_soccer_network
-  # Elasticsearch service
-  elasticsearch:
-    image: elasticsearch:7.9.2
-    container_name: elasticsearch_claude_job_soccer_prod
-    restart: always
-    ports:
-      - "9201:9200"
-    environment:
-      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
-      - "discovery.type=single-node"
-      - "xpack.security.enabled=false"
-    volumes:
-      - elasticsearch_data_prod:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks: 
-      - claude_job_soccer_network
-
-  # Kibana Service
-  kibana:
-    image: kibana:7.9.2
-    container_name: kibana_claude_job_soccer_prod
-    restart: always
-    depends_on: 
-      - elasticsearch 
-    ports: 
-      - "5602:5601"
-    environment:
-      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200" 
-    networks: 
-      - claude_job_soccer_network
-
 volumes:
-  elasticsearch_data_prod:
 
 networks:
   claude_job_soccer_network:

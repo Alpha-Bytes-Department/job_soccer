@@ -30,6 +30,7 @@ const createAmateurPlayerCanDto = z.object({
     "U19",
     "U20",
     "U21",
+    "Adult",
   ]).optional(),
   currentClub: z.string().trim().min(1, "Current club is required"),
   position: z.enum([
@@ -46,7 +47,7 @@ const createAmateurPlayerCanDto = z.object({
   ]),
   agent: z.string().trim().min(1, "Agent is required").optional(),
   country: z.string().min(1, "Country is required"),
-  availability: z.enum(["Now", "Soon", "Later"]),
+  availability: z.enum(["Now", "Soon", "Later"]).optional(),
   weight: z.object({
     size: z.number().positive("Weight must be positive"),
     unit: z.enum(["kg", "lb"]),

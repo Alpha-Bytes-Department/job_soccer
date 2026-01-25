@@ -411,15 +411,19 @@ const getEmployerById = async (id: string, userId?: string) => {
     }),
   ]);
 
+    
   return {
     _id: user._id,
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
     role: user.role,
+    //TODO AI Profile Score
+    aiProfileScore: user?.aiProfileScore || 90,
     profileImage: user.profileImage,
     userType: user.userType,
     isVerified: user.isVerified,
+    
     profile,
     isFollowing,
     followerCount,

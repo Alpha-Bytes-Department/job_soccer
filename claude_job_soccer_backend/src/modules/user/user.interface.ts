@@ -29,6 +29,7 @@ export type TBaseUser = {
   role: CandidateRole | EmployerRole;
   profileImage?: string;
   bannerImage?: string;
+  aiProfileScore?: number;
   profileId: string;
   userType: UserType;
   isVerified: boolean;

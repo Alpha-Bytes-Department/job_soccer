@@ -50,7 +50,7 @@ const officeStaffSchema = new Schema<TOfficeStaffCan>(
       enum: Object.values(TPosition),
       required: true,
     },
-    availability: { type: String, required: true, trim: true },
+    availability: { type: String, required: false, trim: true },
     agent: { type: String, required: false, trim: true },
     socialMedia: { type: String, required: true, trim: true },
     currentClub: { type: String, required: true, trim: true },

@@ -41,11 +41,9 @@
     "stripe": "^20.0.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
-    "winston-elasticsearch": "^0.10.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@elastic/elasticsearch": "^9.1.1",
     "@types/compression": "^1.8.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",

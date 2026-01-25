@@ -278,6 +278,5 @@ export {
   scoreOnFieldStaff,
   batchScoreProfiles,
   handleScoringErrors,
-
   runAllExamples,
 };

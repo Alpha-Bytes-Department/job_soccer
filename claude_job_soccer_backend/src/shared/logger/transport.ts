@@ -2,7 +2,6 @@ import path from "path";
 import { format, transports } from "winston";
 const { combine, timestamp, label, printf, json } = format;
 import "winston-daily-rotate-file";
-import { ElasticsearchTransport } from "winston-elasticsearch";
 import { AsyncLocalStorage } from "async_hooks";
 
 // Create async local storage for request context
@@ -67,37 +66,6 @@ export const consoleTransport = new transports.Console({
     myFormat
   ),
 });
-
-export const elasticTransport = new ElasticsearchTransport({
-  level: process.env.NODE_ENV === "production" ? "error" : "debug", // Only errors in production
-  clientOpts: {
-    node: process.env.ELASTICSEARCH_URL || "http://localhost:9200",
-    auth: {
-      username: process.env.ELASTICSEARCH_USER || "",
-      password: process.env.ELASTICSEARCH_PASSWORD || "",
-    },
-  },
-  indexPrefix: process.env.ELASTICSEARCH_INDEX_PREFIX || "log-express",
-  indexSuffixPattern: "YYYY-MM-DD",
-  handleRejections: false,
-  handleExceptions: false,
-  buffering: true,
-  bufferLimit: 100,
-  flushInterval: 2000, // Flush every 2 seconds
-  format: combine(addRequestId),
-  // Disable warnings to prevent spam
-  ensureMappingTemplate: false,
-});
-
-// Silently handle Elasticsearch errors in development
-elasticTransport.on("error", (error) => {
-  if (process.env.NODE_ENV === "production") {
-    console.error("Elasticsearch transport error:", error);
-  }
-  // Silently fail in development
-});
-
-elasticTransport.on("warning", (warning) => {});
 
 export const errorFileTransport = fileTransport(
   "error",

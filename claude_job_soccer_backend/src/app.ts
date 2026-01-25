@@ -84,7 +84,6 @@ app.use("/videos", cors(corsOptions), express.static("uploads/videos"));
 app.use("/docs", cors(corsOptions), express.static("uploads/docs"));
 app.use(express.static("uploads"));
 app.get("/health", (req: Request, res: Response) => {
-  logger.info("Health check endpoint called");
   res.status(StatusCodes.OK).json({
     success: true,
     message: "Server is running",

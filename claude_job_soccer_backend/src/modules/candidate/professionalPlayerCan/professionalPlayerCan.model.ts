@@ -95,7 +95,7 @@ const professionalPlayerCanSchema = new Schema<TProfessionalPlayerCan>(
         availability: {
             type: String,
             enum: Object.values(TAvailability),
-            required: true,
+            required: false,
         },
         weight: {
             size: { type: Number, required: true },

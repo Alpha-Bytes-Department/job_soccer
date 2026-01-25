@@ -1,12 +1,11 @@
 import { createLogger } from "winston";
-import { consoleTransport, elasticTransport, errorFileTransport, infoFileTransport, requestContext } from "./transport";
+import { consoleTransport, errorFileTransport, infoFileTransport, requestContext } from "./transport";
 import config from "../../config";
 
-// Only use console transport in development
-// Disable Elasticsearch in development to avoid connection warnings
+// Use console and file transports in all environments
 const transports = config.node_env === "production" 
-  ? [errorFileTransport, infoFileTransport, elasticTransport]
-  : [consoleTransport, errorFileTransport, infoFileTransport]; // Removed elasticTransport in dev
+  ? [errorFileTransport, infoFileTransport]
+  : [consoleTransport, errorFileTransport, infoFileTransport];
 
 export const logger = createLogger({
   transports,

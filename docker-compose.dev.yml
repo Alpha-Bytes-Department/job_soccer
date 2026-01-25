@@ -30,48 +30,11 @@ services:
     depends_on:
       redis_claude_job_soccer:
         condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
     restart: always
     environment:
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-
-  # Elasticsearch service
-  elasticsearch:
-    image: elasticsearch:7.9.2
-    container_name: elasticsearch_claude_job_soccer_dev
-    restart: always
-    ports:
-      - "9201:9200"
-      - "9301:9300"
-    environment:
-      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
-      - "discovery.type=single-node"
-    volumes:
-      - elasticsearch_data_dev:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  # Kibana Service
-  kibana:
-    image: kibana:7.9.2
-    container_name: kibana_claude_job_soccer_dev
-    restart: always
-    depends_on: 
-      - elasticsearch 
-    ports: 
-      - "5602:5601"
-    environment:
-      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200" 
-
 
 volumes:
   node_modules:
-  elasticsearch_data_dev:

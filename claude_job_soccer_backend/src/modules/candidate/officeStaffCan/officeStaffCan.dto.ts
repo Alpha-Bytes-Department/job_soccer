@@ -32,7 +32,7 @@ const createOfficeStaffCanDto = z.object({
     "Equipment Staff",
     "Sales",
   ]),
-  availability: z.string().trim().min(1, "Availability is required"),
+  availability: z.string().trim().min(1, "Availability is required").optional(),
   agent: z.string().trim().min(1, "Agent is required").optional(),
   socialMedia: z.string().trim().min(1, "Social media is required"),
   currentClub: z.string().trim().min(1, "Current club is required"),

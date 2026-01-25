@@ -53,7 +53,6 @@ import { ProfessionalClubEmp } from "../employer/professionalClubEmp/professiona
 import { CandidateEducationService } from "../candidateEducation/candidateEducation.service";
 import { CandidateExperienceService } from "../candidateExperience/candidateExperience.service";
 import { CandidateLicensesAndCertificationService } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.service";
-import { AdminVerification } from "../adminVerification/adminVerification.model";
 import { AdminVerificationService } from "../adminVerification/adminVerification.service";
 
 const getAllUsers = async (query: Record<string, unknown>) => {
@@ -138,7 +137,7 @@ const getUserById = async (userId: string) => {
     await CandidateLicensesAndCertificationService.getAllLicensesAndCertificationsByUser(
       userId
     );
-  // const 
+  // const
   return {
     ...user,
     profile,
@@ -303,7 +302,16 @@ const getMe = async (userId: string): Promise<any> => {
     await CandidateLicensesAndCertificationService.getAllLicensesAndCertificationsByUser(
       userId
     );
-  const adminVerificationStatus = await AdminVerificationService.getUserVerificationStatus(userId);
+  const adminVerificationStatus =
+    await AdminVerificationService.getUserVerificationStatus(userId);
+  if (
+    user.role === CandidateRole.ON_FIELD_STAFF ||
+    CandidateRole.OFFICE_STAFF
+  ) {
+    //!TODO
+    profile.AiVideoVideoScore = profile.AiVideoVideoScore || 82;
+  }
+  user.aiProfileScore = user?.aiProfileScore || 90;
 
   return {
     ...user,
