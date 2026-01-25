@@ -22,6 +22,7 @@ const createOnFieldStaffCanDto = z.object({
     league: z.string().trim().min(1, "League is required"),
     category: z.string().trim().min(1, "Category is required").optional(),
     gender: z.enum(["Male", "Female","Other"]),
+    boyOrGirl: z.enum(["Boy", "Girl"]),
     socialMedia: z.string().trim().min(1, "Social media is required"),
     agent: z.string().trim().min(1, "Agent is required").optional(),
     position: z.enum([
