@@ -6,6 +6,7 @@ import { VideoType } from "../../shared/constant/video.constant";
 
 import { QueryBuilder } from "../../shared/builder/QueryBuilder";
 import { unlinkFileSync } from "../../shared/util/unlinkFile";
+import { logger } from "../../shared/logger/logger";
 
 // Import video helpers
 import {
@@ -15,6 +16,12 @@ import {
   processPlayerVideos,
   cleanupUploadedFiles,
 } from "../../shared/util/videoHelper";
+
+// Import AI video scoring
+import {
+  scoreStaffVideosFromUpload,
+  scoreStaffVideosFromStored,
+} from "../../shared/openai/videoScoring.service";
 
 // Import Candidate DTOs
 import { AmateurPlayerCanDto } from "../candidate/amateurPlayerCan/amateurPlayerCan.dto";
@@ -305,11 +312,12 @@ const getMe = async (userId: string): Promise<any> => {
   const adminVerificationStatus =
     await AdminVerificationService.getUserVerificationStatus(userId);
   if (
-    user.role === CandidateRole.ON_FIELD_STAFF ||
-    CandidateRole.OFFICE_STAFF
+    profile &&
+    (user.role === CandidateRole.ON_FIELD_STAFF ||
+      user.role === CandidateRole.OFFICE_STAFF)
   ) {
-    //!TODO
-    profile.AiVideoVideoScore = profile.AiVideoVideoScore || 82;
+    // AiVideoVideoScore is now computed by AI during video upload
+    profile.AiVideoVideoScore = profile.AiVideoVideoScore ?? null;
   }
   user.aiProfileScore = user?.aiProfileScore || 90;
 
@@ -449,7 +457,26 @@ const addUserProfile = async (payload: {
         );
         data.videos = onFieldProcessedVideos;
 
+        // AI Video Scoring
+        let onFieldVideoScore: number | null = null;
+        try {
+          const onFieldScoreResult = await scoreStaffVideosFromUpload({
+            videoFiles,
+            role: CandidateRole.ON_FIELD_STAFF,
+            position: data.position,
+          });
+          if (onFieldScoreResult.totalScore > 0) {
+            onFieldVideoScore = onFieldScoreResult.totalScore;
+          }
+        } catch (scoringError) {
+          logger.error("AI video scoring failed (non-blocking):", { error: scoringError });
+        }
+
         validatedData = OnFieldStaffCanDto.createOnFieldStaffCanDto.parse(data);
+        // Set score after Zod parse (Zod strips unknown fields)
+        if (onFieldVideoScore !== null) {
+          validatedData.AiVideoVideoScore = onFieldVideoScore;
+        }
         const onFieldStaff = await OnFieldStaffCan.create(validatedData);
         profileId = onFieldStaff._id.toString();
         break;
@@ -557,7 +584,26 @@ const addUserProfile = async (payload: {
         );
         data.videos = officeStaffProcessedVideos;
 
+        // AI Video Scoring
+        let officeVideoScore: number | null = null;
+        try {
+          const officeScoreResult = await scoreStaffVideosFromUpload({
+            videoFiles,
+            role: CandidateRole.OFFICE_STAFF,
+            position: data.position,
+          });
+          if (officeScoreResult.totalScore > 0) {
+            officeVideoScore = officeScoreResult.totalScore;
+          }
+        } catch (scoringError) {
+          logger.error("AI video scoring failed (non-blocking):", { error: scoringError });
+        }
+
         validatedData = OfficeStaffCanDto.createOfficeStaffCanDto.parse(data);
+        // Set score after Zod parse (Zod strips unknown fields)
+        if (officeVideoScore !== null) {
+          validatedData.AiVideoVideoScore = officeVideoScore;
+        }
         const officeStaff = await OfficeStaffCan.create(validatedData);
         profileId = officeStaff._id.toString();
         break;
@@ -939,6 +985,27 @@ const updateUserProfile = async (payload: {
     throw new AppError(StatusCodes.NOT_FOUND, "Profile not found");
   }
 
+  // AI Video Scoring: re-score when videos are updated for staff roles
+  if (
+    videoFiles.length > 0 &&
+    (user.role === CandidateRole.ON_FIELD_STAFF ||
+      user.role === CandidateRole.OFFICE_STAFF)
+  ) {
+    try {
+      const scoreResult = await scoreStaffVideosFromUpload({
+        videoFiles,
+        role: user.role as CandidateRole,
+        position: updatedProfile.position,
+      });
+      if (scoreResult.totalScore > 0) {
+        updatedProfile.AiVideoVideoScore = scoreResult.totalScore;
+        await updatedProfile.save();
+      }
+    } catch (scoringError) {
+      logger.error("AI video re-scoring failed (non-blocking):", { error: scoringError });
+    }
+  }
+
   // Update profile image if provided
   if (profileImage) {
     // Delete old profile image if exists
@@ -1094,7 +1161,28 @@ const updateProfileVideo = async (payload: {
   // Update the video at the specified index
   profile.videos[videoIndex] = newVideoData;
 
-  // Save the updated profile
+  // Re-score AI video if staff role (before save to avoid double write)
+  if (
+    isStaff &&
+    (user.role === CandidateRole.ON_FIELD_STAFF ||
+      user.role === CandidateRole.OFFICE_STAFF)
+  ) {
+    try {
+      const videoUrls = profile.videos.map((v: any) => v.url);
+      const scoreResult = await scoreStaffVideosFromStored({
+        videoUrls,
+        role: user.role as CandidateRole,
+        position: profile.position,
+      });
+      if (scoreResult.totalScore > 0) {
+        profile.AiVideoVideoScore = scoreResult.totalScore;
+      }
+    } catch (scoringError) {
+      logger.error("AI video re-scoring failed (non-blocking):", { error: scoringError });
+    }
+  }
+
+  // Save the updated profile (single write with video + score)
   await profile.save();
 
   return {
@@ -1215,7 +1303,28 @@ const addProfileVideo = async (payload: {
   // Replace all videos with the new video
   profile.videos = [newVideoData];
 
-  // Save the updated profile
+  // Re-score AI video if staff role (before save to avoid double write)
+  if (
+    isStaff &&
+    (user.role === CandidateRole.ON_FIELD_STAFF ||
+      user.role === CandidateRole.OFFICE_STAFF)
+  ) {
+    try {
+      const videoUrls = profile.videos.map((v: any) => v.url);
+      const scoreResult = await scoreStaffVideosFromStored({
+        videoUrls,
+        role: user.role as CandidateRole,
+        position: profile.position,
+      });
+      if (scoreResult.totalScore > 0) {
+        profile.AiVideoVideoScore = scoreResult.totalScore;
+      }
+    } catch (scoringError) {
+      logger.error("AI video re-scoring failed (non-blocking):", { error: scoringError });
+    }
+  }
+
+  // Save the updated profile (single write with video + score)
   await profile.save();
 
   return {
@@ -1307,6 +1416,34 @@ const deleteProfileVideo = async (payload: {
 
   // Save the updated profile
   await profile.save();
+
+  // Re-score AI video if staff role and videos remain
+  if (
+    (user.role === CandidateRole.ON_FIELD_STAFF ||
+      user.role === CandidateRole.OFFICE_STAFF) &&
+    profile.videos.length > 0
+  ) {
+    try {
+      const videoUrls = profile.videos.map((v: any) => v.url);
+      const scoreResult = await scoreStaffVideosFromStored({
+        videoUrls,
+        role: user.role as CandidateRole,
+        position: profile.position,
+      });
+      profile.AiVideoVideoScore = scoreResult.totalScore;
+      await profile.save();
+    } catch (scoringError) {
+      logger.error("AI video re-scoring failed (non-blocking):", { error: scoringError });
+    }
+  } else if (
+    (user.role === CandidateRole.ON_FIELD_STAFF ||
+      user.role === CandidateRole.OFFICE_STAFF) &&
+    profile.videos.length === 0
+  ) {
+    // No videos left — reset score
+    profile.AiVideoVideoScore = null;
+    await profile.save();
+  }
 
   return {
     profile,

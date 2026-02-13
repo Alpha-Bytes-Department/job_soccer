@@ -33,6 +33,7 @@ export type TOfficeStaffCan = {
     description?: string;
     uploadedAt?: Date;
   }[];
+  AiVideoVideoScore?: number;
 };
 const officeStaffSchema = new Schema<TOfficeStaffCan>(
   {
@@ -69,6 +70,7 @@ const officeStaffSchema = new Schema<TOfficeStaffCan>(
         uploadedAt: { type: Date, default: Date.now },
       },
     ],
+    AiVideoVideoScore: { type: Number, default: null },
   },
   {
     timestamps: true,

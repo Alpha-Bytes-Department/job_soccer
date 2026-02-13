@@ -11,4 +11,5 @@
 
 export { generateProfileScore, batchGenerateProfileScores } from "./profileScoring.service";
 export { calculateJobMatchScore } from "./jobMatching.service";
+export { scoreStaffVideosFromUpload, scoreStaffVideosFromStored } from "./videoScoring.service";
 export { openai, OPENAI_CONFIG } from "./openai.config";

@@ -338,10 +338,10 @@ const getCandidateById = async (id: string, userId?: string) => {
   }
     if (
       user.role === CandidateRole.ON_FIELD_STAFF ||
-      CandidateRole.OFFICE_STAFF
+      user.role === CandidateRole.OFFICE_STAFF
     ) {
-      //!TODO
-      profile.AiVideoVideoScore = 82;
+      // AiVideoVideoScore is now computed by AI during video upload
+      profile.AiVideoVideoScore = profile.AiVideoVideoScore ?? null;
     }
 
   return {

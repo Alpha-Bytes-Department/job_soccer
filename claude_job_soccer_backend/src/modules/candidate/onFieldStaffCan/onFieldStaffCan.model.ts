@@ -2,18 +2,18 @@ import { model, Schema } from "mongoose";
 import { countryList } from "../../../shared/constant/country.constant";
 
 enum TPosition {
-  HEAD_COACH = "Head Coach",
-  ASSISTANT_COACH = "Assistant Coach",
-  GK_COACH = "GK Coach",
-  MENTAL_COACH = "Mental Coach",
-  VIDEO_ANALYST_COACH = "Video Analyst Coach",
-  SPECIFIC_FORWARD_COACH = "Specific Forward Coach",
-  SPECIFIC_DEFENSIVE_COACH = "Specific Defensive Coach",
-  SPECIFIC_TECHNICAL_COACH = "Specific Technical Coach",
-  SCOUT = "Scout",
-  TECHNICAL_DIRECTOR = "Technical Director",
-  ACADEMY_DIRECTOR = "Academy Director",
-  DIRECTOR_OF_COACHING = "Director of Coaching",
+  HEAD_COACH = "Head Coach", 
+  ASSISTANT_COACH = "Assistant Coach", //done
+  GK_COACH = "GK Coach",  //done
+  MENTAL_COACH = "Mental Coach", //done
+  VIDEO_ANALYST_COACH = "Video Analyst Coach", //done
+  SPECIFIC_FORWARD_COACH = "Specific Forward Coach", //done
+  SPECIFIC_DEFENSIVE_COACH = "Specific Defensive Coach", //done
+  SPECIFIC_TECHNICAL_COACH = "Specific Technical Coach", //done
+  SCOUT = "Scout", //done
+  TECHNICAL_DIRECTOR = "Technical Director", //done
+  ACADEMY_DIRECTOR = "Academy Director", 
+  DIRECTOR_OF_COACHING = "Director of Coaching", //done
 }
 
 export type TOnFieldStaffCan = {
@@ -39,6 +39,7 @@ export type TOnFieldStaffCan = {
     description?: string;
     uploadedAt?: Date;
   }[];
+  AiVideoVideoScore?: number;
 };
 const onFieldStaffCanSchema = new Schema<TOnFieldStaffCan>(
   {
@@ -74,6 +75,7 @@ const onFieldStaffCanSchema = new Schema<TOnFieldStaffCan>(
         uploadedAt: { type: Date, default: Date.now },
       },
     ],
+    AiVideoVideoScore: { type: Number, default: null },
   },
   {
     timestamps: true,
