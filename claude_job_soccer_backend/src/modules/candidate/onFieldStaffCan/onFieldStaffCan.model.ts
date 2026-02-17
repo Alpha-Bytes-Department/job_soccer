@@ -4,7 +4,7 @@ import { countryList } from "../../../shared/constant/country.constant";
 enum TPosition {
   HEAD_COACH = "Head Coach",
   ASSISTANT_COACH = "Assistant Coach",  
-  GK_COACH = "GK Coach",  
+  GK_COACH = "GK Coach",  //done
   MENTAL_COACH = "Mental Coach", //done
   VIDEO_ANALYST_COACH = "Video Analyst Coach", //done 
   SPECIFIC_FORWARD_COACH = "Specific Forward Coach", 

@@ -700,6 +700,138 @@ const DIRECTOR_OF_COACHING_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("Director of Coaching", DIRECTOR_OF_COACHING_QUESTIONS);
 
+// ─── GK Coach ────────────────────────────────────────────────────────────────
+
+const GK_COACH_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "GK Coach",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess professional pathway, role clarity within technical staff, and alignment with head coach objectives.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your background and pathway to becoming a goalkeeper coach?",
+        },
+        {
+          id: 2,
+          text: "How do you define the role and responsibilities of a goalkeeper coach within a technical staff?",
+        },
+        {
+          id: 3,
+          text: "How do you align your work with the head coach and overall team objectives?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate ability to analyze goalkeeper decision-making, positioning/tactical awareness, and contribution to team tactical organization.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you analyze goalkeeper decision-making during matches?",
+        },
+        {
+          id: 5,
+          text: "How do you assess positioning and tactical awareness of a goalkeeper?",
+        },
+        {
+          id: 6,
+          text: "How do you evaluate a goalkeeper's contribution to team tactical organization?",
+        },
+      ],
+    },
+    {
+      name: "Coaching Methodology & Training Design",
+      objective:
+        "Understand weekly session structure, individualization by profile/age/level, and progression assessment tools.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you structure your goalkeeper training sessions throughout a week to reflect your methodology?",
+        },
+        {
+          id: 8,
+          text: "How do you individualize training based on goalkeeper profiles, age, and level?",
+        },
+        {
+          id: 9,
+          text: "What tools or indicators do you use to assess goalkeeper progression?",
+        },
+      ],
+    },
+    {
+      name: "Game Principles & Communication",
+      objective:
+        "Assess game principles integration into playing model, concept explanation clarity, and difficult communication handling.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "What are your key game principles for goalkeepers, and how do they integrate into the team's playing model?",
+        },
+        {
+          id: 11,
+          text: "How do you explain technical and tactical concepts to ensure goalkeeper understanding and execution?",
+        },
+        {
+          id: 12,
+          text: "Describe a situation where you had to communicate a difficult message to a goalkeeper.",
+        },
+      ],
+    },
+    {
+      name: "Leadership, Collaboration & Adaptability",
+      objective:
+        "Evaluate authority and trust building, handling unpopular decisions, and in-match adaptability.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you establish authority and trust as a goalkeeper coach within the staff and squad?",
+        },
+        {
+          id: 14,
+          text: "Describe a moment when you had to make an unpopular decision regarding goalkeeper selection or focus.",
+        },
+        {
+          id: 15,
+          text: "Describe a match where your goalkeeper preparation did not work as expected. What adjustments did you make?",
+        },
+      ],
+    },
+    {
+      name: "Professionalism, Evaluation & Vision",
+      objective:
+        "Measure self-awareness of strengths/weaknesses, professional resilience, and success measurement beyond clean sheets.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "What do you consider to be your main strengths as a goalkeeper coach, and which areas are you improving?",
+        },
+        {
+          id: 17,
+          text: "What has been the toughest professional challenge you have faced in this role, and how did you overcome it?",
+        },
+        {
+          id: 18,
+          text: "How do you measure success as a goalkeeper coach beyond clean sheets, and how has your approach evolved?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("GK Coach", GK_COACH_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
