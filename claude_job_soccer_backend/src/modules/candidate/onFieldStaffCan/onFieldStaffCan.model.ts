@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 import { countryList } from "../../../shared/constant/country.constant";
 
 enum TPosition {
-  HEAD_COACH = "Head Coach",
+  HEAD_COACH = "Head Coach", //done
   ASSISTANT_COACH = "Assistant Coach",  
   GK_COACH = "GK Coach",  //done
   MENTAL_COACH = "Mental Coach", //done

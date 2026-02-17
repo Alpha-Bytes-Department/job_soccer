@@ -832,6 +832,138 @@ const GK_COACH_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("GK Coach", GK_COACH_QUESTIONS);
 
+// ─── Head Coach ──────────────────────────────────────────────────────────────
+
+const HEAD_COACH_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Head Coach",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess coaching pathway, philosophy evolution, and understanding of head coach responsibilities.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your coaching background and pathway to your current level?",
+        },
+        {
+          id: 2,
+          text: "How would you describe your coaching philosophy, and how has it evolved over time?",
+        },
+        {
+          id: 3,
+          text: "What do you see as your main responsibilities as a head coach within a club or organization?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate tactical performance analysis, player understanding of game principles, and use of match data/video.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you evaluate team tactical performance during matches?",
+        },
+        {
+          id: 5,
+          text: "How do you assess whether players understand and apply your game principles?",
+        },
+        {
+          id: 6,
+          text: "How do you analyze match data or video to improve team performance?",
+        },
+      ],
+    },
+    {
+      name: "Methodology, Training & Playing Model",
+      objective:
+        "Understand session structure and weekly planning, game principle consistency, and tactical concept teaching ability.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you structure your training sessions and weekly planning to reflect your coaching methodology?",
+        },
+        {
+          id: 8,
+          text: "What are your main game principles, and how do you ensure they are applied consistently during matches?",
+        },
+        {
+          id: 9,
+          text: "When you introduce a new tactical concept, how do you teach it so all players understand and can execute it?",
+        },
+      ],
+    },
+    {
+      name: "Leadership & Communication",
+      objective:
+        "Assess authority establishment, handling of unpopular decisions, and difficult communication approaches.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you establish your authority and leadership within a new team?",
+        },
+        {
+          id: 11,
+          text: "Describe a moment when you had to make an unpopular decision. How did you handle it?",
+        },
+        {
+          id: 12,
+          text: "Describe a situation where you had to communicate a difficult decision to your team. What was your approach?",
+        },
+      ],
+    },
+    {
+      name: "Adaptability & Problem Solving",
+      objective:
+        "Evaluate in-match adaptability, resource-constrained coaching, and approach adjustment across age groups/levels.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "Describe a match where your original game plan did not work. What did you change and why?",
+        },
+        {
+          id: 14,
+          text: "Tell us about a time when you had to coach with limited resources (time, staff, facilities, injuries). How did you manage it?",
+        },
+        {
+          id: 15,
+          text: "How do you adjust your coaching approach to different age groups and competitive levels?",
+        },
+      ],
+    },
+    {
+      name: "Professionalism, Staff Building & Evaluation",
+      objective:
+        "Measure self-awareness of strengths/improvement areas, professional resilience, and staff selection process.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "What do you consider to be your main strengths as a coach, and which areas are you actively working to improve?",
+        },
+        {
+          id: 17,
+          text: "What has been the toughest professional challenge you have faced as a coach, and how did you overcome it?",
+        },
+        {
+          id: 18,
+          text: "What is your process for selecting and building your coaching staff?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Head Coach", HEAD_COACH_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
