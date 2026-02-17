@@ -226,6 +226,14 @@ SCORING GUIDELINES:
 - Be fair and objective. Assess quality, depth, specificity, and relevance of responses
 - Total possible score: ${questionSet.totalScore}
 
+PER-QUESTION QUALITY SCALE (use to calibrate category scores):
+- 0 = No evidence (no answer or irrelevant)
+- 1 = Very weak (vague or theoretical only)
+- 2 = Weak (limited practical experience shown)
+- 3 = Acceptable (clear response with relevant examples)
+- 4 = Strong (structured response with applied impact)
+- 5 = Elite (high-level, consistent, scalable professional performance)
+
 Respond with ONLY valid JSON in this exact format:
 {
   "categoryScores": { ${categoryKeys} },

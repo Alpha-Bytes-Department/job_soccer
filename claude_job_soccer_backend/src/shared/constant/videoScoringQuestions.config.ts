@@ -147,12 +147,294 @@ const OFFICE_STAFF_QUESTIONS: IVideoScoringQuestionSet = {
   ],
 };
 
-// ─── On Field Staff Questions (Per-position, to be added) ────────────────────
+// ─── On Field Staff Questions (Per-position) ─────────────────────────────────
+//
+// Universal Evaluation Structure (all ON_FIELD_STAFF positions):
+//   6 categories × 3 questions = 18 questions per position
+//   Weights: 20 + 20 + 20 + 15 + 15 + 10 = 100 points
+//   Category names are position-specific; weights are universal.
+//
+// Universal Scoring Rubric (0–5 per question, scaled to category weight):
+//   0 = No evidence (no answer or irrelevant)
+//   1 = Very weak (vague or theoretical)
+//   2 = Weak (limited practical experience)
+//   3 = Acceptable (clear with relevant examples)
+//   4 = Strong (structured with applied impact)
+//   5 = Elite (high-level, consistent, scalable coaching performance)
+//
+// Score Interpretation:
+//   < 60  → Risk — Not ready for competitive level
+//   60–74 → Operational — Requires supervision
+//   75–84 → Strong — Reliable coach
+//   ≥ 85  → Elite — High-impact performance coach
+// ──────────────────────────────────────────────────────────────────────────────
 
-// Placeholder map: position -> question set
-// Will be populated when ON_FIELD_STAFF questions are provided
 const ON_FIELD_STAFF_QUESTIONS: Map<string, IVideoScoringQuestionSet> =
   new Map();
+
+// ─── Technical Director ──────────────────────────────────────────────────────
+
+const TECHNICAL_DIRECTOR_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Technical Director",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess professional pathway, role clarity, and ability to balance strategic vision with operational demands.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your professional background and pathway to becoming a Technical Director?",
+        },
+        {
+          id: 2,
+          text: "How do you define the role and responsibilities of a Technical Director within a football club?",
+        },
+        {
+          id: 3,
+          text: "How do you balance strategic vision with day-to-day operational demands?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate tactical evaluation ability, coaching oversight, and data-driven decision making.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you evaluate tactical consistency across all teams within the club?",
+        },
+        {
+          id: 5,
+          text: "How do you assess whether coaches are implementing the playing philosophy correctly?",
+        },
+        {
+          id: 6,
+          text: "How do you analyze team and player performance data to guide technical decisions?",
+        },
+      ],
+    },
+    {
+      name: "Technical Project & Methodology",
+      objective:
+        "Understand project structure, development-performance alignment, and implementation oversight.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you structure and oversee the club's technical project throughout a season?",
+        },
+        {
+          id: 8,
+          text: "What methodology do you use to align player development with team performance objectives?",
+        },
+        {
+          id: 9,
+          text: "How do you evaluate whether the technical project is being correctly implemented?",
+        },
+      ],
+    },
+    {
+      name: "Playing Model & Communication",
+      objective:
+        "Assess playing model definition, vision communication, and handling of complex technical decisions.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you define the club's playing model and game principles across all teams and age groups?",
+        },
+        {
+          id: 11,
+          text: "How do you communicate the technical vision and expectations to coaches and staff?",
+        },
+        {
+          id: 12,
+          text: "Describe a situation where you had to communicate a complex or sensitive technical decision.",
+        },
+      ],
+    },
+    {
+      name: "Leadership, Collaboration & Adaptability",
+      objective:
+        "Evaluate cross-department collaboration, leadership influence, and contextual adaptability.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you collaborate with the head coach, academy staff, and management to align objectives?",
+        },
+        {
+          id: 14,
+          text: "Describe a moment when your technical leadership influenced an important sporting decision.",
+        },
+        {
+          id: 15,
+          text: "Describe a situation where the technical project needed adjustment due to results or context.",
+        },
+      ],
+    },
+    {
+      name: "Professionalism, Evaluation & Vision",
+      objective:
+        "Measure impact evaluation beyond results, professional resilience, and methodology evolution.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "How do you measure the effectiveness and impact of the technical project beyond match results?",
+        },
+        {
+          id: 17,
+          text: "What has been the toughest professional challenge you have faced as a Technical Director?",
+        },
+        {
+          id: 18,
+          text: "How has your technical leadership and methodology evolved over the past three to five years?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Technical Director", TECHNICAL_DIRECTOR_QUESTIONS);
+
+// ─── Mental Coach ────────────────────────────────────────────────────────────
+
+const MENTAL_COACH_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Mental Coach",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess training background in mental performance/sport psychology, soccer-specific experience, and role clarity.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your background and training in mental performance or sport psychology?",
+        },
+        {
+          id: 2,
+          text: "What is your experience working with soccer players or team staff specifically?",
+        },
+        {
+          id: 3,
+          text: "How do you define the role of a mental coach within a soccer environment?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise Integration",
+      objective:
+        "Evaluate ability to connect mental preparation with tactical performance, psychological behavior analysis, and mental discipline.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you connect mental preparation with tactical performance and decision-making?",
+        },
+        {
+          id: 5,
+          text: "How do you analyze psychological behaviors that influence match performance?",
+        },
+        {
+          id: 6,
+          text: "How do you help players maintain mental discipline within tactical structures?",
+        },
+      ],
+    },
+    {
+      name: "Methodology & Approach",
+      objective:
+        "Understand general methodology (individual vs collective), mental profiling, and prioritization of mental skills.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "What is your general methodology when working with players (individual vs collective)?",
+        },
+        {
+          id: 8,
+          text: "How do you assess a player's mental profile at the start of your work?",
+        },
+        {
+          id: 9,
+          text: "Which mental skills do you prioritize most in soccer and why?",
+        },
+      ],
+    },
+    {
+      name: "Application in Soccer Context",
+      objective:
+        "Assess adaptability across age groups, pressure/anxiety management, and match-specific mental preparation.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you adapt your work according to age groups (youth, academy, senior players)?",
+        },
+        {
+          id: 11,
+          text: "How do you handle pressure-related issues such as competition stress, selection anxiety, or fear of failure?",
+        },
+        {
+          id: 12,
+          text: "Can you give an example of how you prepare a player mentally for an important match or trial?",
+        },
+      ],
+    },
+    {
+      name: "Collaboration & Integration",
+      objective:
+        "Evaluate staff collaboration, alignment with game model, and professional boundary awareness.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you collaborate with coaches, technical staff, and medical staff?",
+        },
+        {
+          id: 14,
+          text: "How do you ensure your mental coaching aligns with the team's game model and performance objectives?",
+        },
+        {
+          id: 15,
+          text: "What boundaries do you set between mental coaching and clinical psychology?",
+        },
+      ],
+    },
+    {
+      name: "Evaluation & Impact",
+      objective:
+        "Measure effectiveness tracking, demonstrated impact on performance, and adaptability with resistant players.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "How do you measure the effectiveness of your mental coaching work?",
+        },
+        {
+          id: 17,
+          text: "Can you share an example of a situation where your intervention had a clear impact on performance or behavior?",
+        },
+        {
+          id: 18,
+          text: "How do you adapt your approach when a player is resistant or not fully engaged?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Mental Coach", MENTAL_COACH_QUESTIONS);
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
