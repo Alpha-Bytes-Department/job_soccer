@@ -436,6 +436,138 @@ const MENTAL_COACH_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("Mental Coach", MENTAL_COACH_QUESTIONS);
 
+// ─── Video Analyst Coach ─────────────────────────────────────────────────────
+
+const VIDEO_ANALYST_COACH_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Video Analyst Coach",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess professional pathway, role clarity within technical staff, and alignment with head coach objectives.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your background and pathway to becoming a video analyst in football?",
+        },
+        {
+          id: 2,
+          text: "How do you define your role and responsibilities within a technical staff?",
+        },
+        {
+          id: 3,
+          text: "How do you ensure your analysis supports the head coach's tactical objectives?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate ability to identify tactical patterns, assess player decision-making, and analyze opposition.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you identify tactical patterns and trends from match footage?",
+        },
+        {
+          id: 5,
+          text: "How do you evaluate player decision-making using video analysis?",
+        },
+        {
+          id: 6,
+          text: "How do you assess opposition strengths and weaknesses through analysis?",
+        },
+      ],
+    },
+    {
+      name: "Analysis Methodology & Workflow",
+      objective:
+        "Understand weekly workflow structure, clip/data prioritization, and tools or software proficiency.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you structure your video analysis workflow throughout a week?",
+        },
+        {
+          id: 8,
+          text: "How do you select and prioritize key clips or data points for analysis?",
+        },
+        {
+          id: 9,
+          text: "What tools or software do you use to support your analysis process?",
+        },
+      ],
+    },
+    {
+      name: "Tactical Model & Communication",
+      objective:
+        "Assess playing model analysis, translation of insights into actionable coaching points, and communication of complex findings.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you analyze a team's playing model and game principles?",
+        },
+        {
+          id: 11,
+          text: "How do you translate tactical analysis into actionable insights for coaches and players?",
+        },
+        {
+          id: 12,
+          text: "Describe a situation where you had to communicate a complex or sensitive analysis message.",
+        },
+      ],
+    },
+    {
+      name: "Collaboration & Adaptability",
+      objective:
+        "Evaluate staff collaboration, influence on tactical decisions, and ability to adjust analysis approach.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you collaborate with coaches and staff to align analysis with training and matches?",
+        },
+        {
+          id: 14,
+          text: "Describe a moment when your analysis influenced an important tactical decision.",
+        },
+        {
+          id: 15,
+          text: "Describe a match where your initial analysis approach was not sufficient. What adjustments did you make?",
+        },
+      ],
+    },
+    {
+      name: "Professionalism, Evaluation & Development",
+      objective:
+        "Measure self-awareness of strengths/weaknesses, professional resilience, and methodology evolution.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "What do you consider to be your main strengths as a video analyst, and which areas are you improving?",
+        },
+        {
+          id: 17,
+          text: "What has been the toughest professional challenge you have faced in this role, and how did you overcome it?",
+        },
+        {
+          id: 18,
+          text: "How do you measure the impact of your analysis beyond results, and how has your methodology evolved?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Video Analyst Coach", VIDEO_ANALYST_COACH_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
