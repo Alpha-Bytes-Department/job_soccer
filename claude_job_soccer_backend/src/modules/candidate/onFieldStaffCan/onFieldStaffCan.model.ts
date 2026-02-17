@@ -10,7 +10,7 @@ enum TPosition {
   SPECIFIC_FORWARD_COACH = "Specific Forward Coach", 
   SPECIFIC_DEFENSIVE_COACH = "Specific Defensive Coach", 
   SPECIFIC_TECHNICAL_COACH = "Specific Technical Coach", 
-  SCOUT = "Scout", 
+  SCOUT = "Scout", //done
   TECHNICAL_DIRECTOR = "Technical Director", //done
   ACADEMY_DIRECTOR = "Academy Director",
   DIRECTOR_OF_COACHING = "Director of Coaching", //done

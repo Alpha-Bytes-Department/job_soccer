@@ -964,6 +964,138 @@ const HEAD_COACH_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("Head Coach", HEAD_COACH_QUESTIONS);
 
+// ─── Scout ───────────────────────────────────────────────────────────────────
+
+const SCOUT_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Scout",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess scouting pathway, role clarity within recruitment/technical department, and alignment with club strategy.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your scouting background and pathway to becoming a scout?",
+        },
+        {
+          id: 2,
+          text: "What is your primary role and responsibility within a recruitment or technical department?",
+        },
+        {
+          id: 3,
+          text: "How do you align your scouting priorities with club strategy and recruitment needs?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate ability to assess tactical intelligence, decision-making quality, and tactical fit with a playing model.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you evaluate a player's tactical intelligence during matches?",
+        },
+        {
+          id: 5,
+          text: "How do you assess decision-making quality in game situations?",
+        },
+        {
+          id: 6,
+          text: "How do you identify tactical fit between a player and a team's playing model?",
+        },
+      ],
+    },
+    {
+      name: "Scouting Methodology",
+      objective:
+        "Understand player evaluation criteria, end-to-end scouting process, and use of data analytics/video analysis.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "What key attributes do you look for when evaluating a player's potential?",
+        },
+        {
+          id: 8,
+          text: "Can you walk us through your scouting process from identifying a player to making a recommendation?",
+        },
+        {
+          id: 9,
+          text: "Do you have experience using data analytics or video analysis to support your scouting decisions?",
+        },
+      ],
+    },
+    {
+      name: "Player Profile & Game Understanding",
+      objective:
+        "Assess development potential evaluation, multi-domain profile analysis, and performance contextualization.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you evaluate a player's potential for development and readiness to move to the next level?",
+        },
+        {
+          id: 11,
+          text: "How do you analyze a player's profile (technical, tactical, physical, mental) in relation to a team's playing model?",
+        },
+        {
+          id: 12,
+          text: "How do you contextualize individual performance based on competition level, age, and role?",
+        },
+      ],
+    },
+    {
+      name: "Communication, Collaboration & Adaptability",
+      objective:
+        "Evaluate report presentation clarity, handling of complex scouting opinions, and alignment with coaches and staff.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you present your scouting reports to coaches or technical staff to ensure clarity and usefulness?",
+        },
+        {
+          id: 14,
+          text: "Describe a situation where you had to communicate a complex or sensitive scouting opinion. How did you handle it?",
+        },
+        {
+          id: 15,
+          text: "How do you collaborate with coaches and performance staff to align scouting with team needs?",
+        },
+      ],
+    },
+    {
+      name: "Professionalism, Impact & Development",
+      objective:
+        "Measure self-awareness of strengths/improvement areas, professional resilience, and methodology evolution.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "What do you consider to be your main strengths as a scout, and which areas are you actively working to improve?",
+        },
+        {
+          id: 17,
+          text: "What has been the toughest professional challenge you have faced as a scout, and how did you overcome it?",
+        },
+        {
+          id: 18,
+          text: "How do you measure the quality and effectiveness of your scouting work beyond player signings, and how has your methodology evolved over time?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Scout", SCOUT_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
