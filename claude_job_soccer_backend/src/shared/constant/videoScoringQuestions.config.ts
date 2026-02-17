@@ -568,6 +568,138 @@ const VIDEO_ANALYST_COACH_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("Video Analyst Coach", VIDEO_ANALYST_COACH_QUESTIONS);
 
+// ─── Director of Coaching ────────────────────────────────────────────────────
+
+const DIRECTOR_OF_COACHING_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Director of Coaching",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess professional pathway, coaching philosophy evolution, and role clarity within a club or organization.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your professional background and pathway to becoming a Director of Coaching?",
+        },
+        {
+          id: 2,
+          text: "What is your coaching philosophy, and how has it evolved over time?",
+        },
+        {
+          id: 3,
+          text: "How do you define the role and responsibilities of a Director of Coaching within a club or organization?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate tactical consistency oversight, coaching standards implementation, and data-driven decision making.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you evaluate tactical consistency across teams within the club?",
+        },
+        {
+          id: 5,
+          text: "How do you ensure technical and tactical standards are implemented by coaches?",
+        },
+        {
+          id: 6,
+          text: "How do you analyze player and team performance data to guide coaching decisions?",
+        },
+      ],
+    },
+    {
+      name: "Club Philosophy & Methodology",
+      objective:
+        "Understand unified playing philosophy design, methodology principles, and balancing consistency with coach autonomy.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you design and implement a unified playing philosophy across all age groups?",
+        },
+        {
+          id: 8,
+          text: "What principles guide your coaching methodology in training and competition?",
+        },
+        {
+          id: 9,
+          text: "How do you ensure consistency while allowing coaches autonomy at different levels?",
+        },
+      ],
+    },
+    {
+      name: "Coach Development & Management",
+      objective:
+        "Assess coach recruitment, development and evaluation processes, performance indicators, and licensing pathway support.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you recruit, develop, and evaluate coaches within the organization?",
+        },
+        {
+          id: 11,
+          text: "What tools or indicators do you use to assess coaching performance?",
+        },
+        {
+          id: 12,
+          text: "How do you support coaches in their professional development and licensing pathway?",
+        },
+      ],
+    },
+    {
+      name: "Player Development Framework",
+      objective:
+        "Evaluate alignment of development with performance outcomes, multi-domain integration, and age-group transition management.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you align player development objectives with long-term performance outcomes?",
+        },
+        {
+          id: 14,
+          text: "How do you integrate physical, technical, tactical, and mental development into a single framework?",
+        },
+        {
+          id: 15,
+          text: "How do you manage transitions between age groups and competitive levels?",
+        },
+      ],
+    },
+    {
+      name: "Leadership, Structure & Evaluation",
+      objective:
+        "Measure cross-department collaboration, program success measurement, and strategic prioritization ability.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "How do you collaborate with technical directors, performance staff, and management?",
+        },
+        {
+          id: 17,
+          text: "How do you measure the success of the coaching program at both individual and collective levels?",
+        },
+        {
+          id: 18,
+          text: "If you were appointed today, what would be your priorities in the first 90 days?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Director of Coaching", DIRECTOR_OF_COACHING_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**

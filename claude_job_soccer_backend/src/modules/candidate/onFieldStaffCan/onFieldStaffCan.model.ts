@@ -13,7 +13,7 @@ enum TPosition {
   SCOUT = "Scout", 
   TECHNICAL_DIRECTOR = "Technical Director", //done
   ACADEMY_DIRECTOR = "Academy Director",
-  DIRECTOR_OF_COACHING = "Director of Coaching", 
+  DIRECTOR_OF_COACHING = "Director of Coaching", //done
 }
 
 export type TOnFieldStaffCan = {
