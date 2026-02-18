@@ -5,6 +5,12 @@ import { logger } from "../logger/logger";
 /**
  * Profile scoring criteria based on candidate role
  * Videos not analyzed to reduce costs. Focus on written info quality.
+ *
+ * IMPORTANT: Profile forms collect LIMITED information (basic fields like name,
+ * position, club, nationality, etc.). The AI should score GENEROUSLY because
+ * candidates have few fields to demonstrate their value. A complete profile
+ * with all fields filled should score 75-90+. Only truly empty/minimal
+ * profiles should score below 60.
  */
 const PROFILE_SCORING_CRITERIA = {
   [CandidateRole.PROFESSIONAL_PLAYER]: { experience: 35, achievements: 30, details: 25, completeness: 10 },
@@ -35,7 +41,16 @@ export async function generateProfileScore(profileData: Record<string, any>, rol
       messages: [
         {
           role: "system",
-          content: `You are an expert soccer/football recruitment analyst. Evaluate candidate profiles and provide a numerical score out of 100. Be fair, objective, and consistent. Return ONLY a number between 0-100.`,
+          content: `You are an expert soccer/football recruitment analyst. Evaluate candidate profiles and provide a numerical score out of 100.
+
+IMPORTANT CONTEXT: These profiles have LIMITED fields to fill in (basic info like name, position, club, nationality, availability, etc.). Candidates cannot write essays or provide extensive detail — they only fill structured form fields. Therefore:
+- Score GENEROUSLY. A profile with most fields filled = strong effort = score 75-90.
+- A fully complete profile with good data should score 80-95.
+- Only truly empty or minimal profiles (few fields filled, no meaningful data) should score below 60.
+- Average profiles with reasonable info should score 65-80.
+- Do NOT penalize for lack of detail that the form does not allow.
+
+Be fair, objective, and consistent. Return ONLY a number between 0-100.`,
         },
         { role: "user", content: prompt },
       ],
@@ -112,13 +127,14 @@ CONSIDERATIONS:
   prompt += `
 INSTRUCTIONS:
 1. Score based on criteria above
-2. Focus heavily on QUALITY and DETAIL
-3. Reward profiles with specific, relevant info
-4. Completeness has minimal weight
-5. Only exceptional profiles with rich info score >90
-6. Average profiles score ~50-60
-7. Exceptional profiles with detailed experience should score 70-95
+2. Remember: candidates fill SHORT form fields, not essays — score generously
+3. Reward profiles that have most fields filled with relevant info
+4. A complete profile (most fields filled) should score 75-90
+5. An average profile (basic info present) should score 65-80
+6. Only truly empty/minimal profiles should score below 60
+7. Exceptional profiles with top-level experience (elite clubs, national teams) score 85-95
 8. DO NOT analyze videos
+9. DO NOT penalize for brevity — the form structure limits detail
 
 Return ONLY a number between 0 and 100. No extra text.`;
 

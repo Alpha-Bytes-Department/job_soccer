@@ -23,6 +23,9 @@ import {
   scoreStaffVideosFromStored,
 } from "../../shared/openai/videoScoring.service";
 
+// Import AI profile scoring
+import { generateProfileScore } from "../../shared/openai/profileScoring.service";
+
 // Import Candidate DTOs
 import { AmateurPlayerCanDto } from "../candidate/amateurPlayerCan/amateurPlayerCan.dto";
 import { ProfessionalPlayerCanDto } from "../candidate/professionalPlayerCan/professionalPlayerCan.dto";
@@ -319,7 +322,8 @@ const getMe = async (userId: string): Promise<any> => {
     // AiVideoVideoScore is now computed by AI during video upload
     profile.AiVideoVideoScore = profile.AiVideoVideoScore ?? null;
   }
-  user.aiProfileScore = user?.aiProfileScore || 90;
+  // aiProfileScore is computed by AI during profile creation/update
+  user.aiProfileScore = user?.aiProfileScore ?? 0;
 
   return {
     ...user,
@@ -688,6 +692,21 @@ const addUserProfile = async (payload: {
     updateData.profileImage = profileImage;
   }
 
+  // AI Profile Scoring for all candidates (non-blocking)
+  if (user.userType === "candidate" && validatedData) {
+    try {
+      const profileScore = await generateProfileScore(
+        validatedData,
+        user.role as CandidateRole
+      );
+      if (profileScore > 0) {
+        updateData.aiProfileScore = profileScore;
+      }
+    } catch (scoringError) {
+      logger.error("AI profile scoring failed (non-blocking):", { error: scoringError });
+    }
+  }
+
   const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
     new: true,
   });
@@ -1022,6 +1041,24 @@ const updateUserProfile = async (payload: {
       unlinkFileSync(user.bannerImage);
     }
     userUpdateData.bannerImage = bannerImage;
+  }
+
+  // AI Profile Re-scoring for all candidates on profile update (non-blocking)
+  if (user.userType === "candidate") {
+    try {
+      const profileDataForScoring = updatedProfile.toObject
+        ? updatedProfile.toObject()
+        : updatedProfile;
+      const profileScore = await generateProfileScore(
+        profileDataForScoring,
+        user.role as CandidateRole
+      );
+      if (profileScore > 0) {
+        userUpdateData.aiProfileScore = profileScore;
+      }
+    } catch (scoringError) {
+      logger.error("AI profile re-scoring failed (non-blocking):", { error: scoringError });
+    }
   }
 
   // Update user if there are changes

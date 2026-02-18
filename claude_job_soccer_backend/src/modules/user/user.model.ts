@@ -70,6 +70,7 @@ const userSchema = new Schema<TBaseUser>(
     },
     stripeCustomerId: {type:String,default:null},
     activeSubscriptionId: { type: Schema.Types.ObjectId, ref: "Subscription" },
+    aiProfileScore: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },
   },
   {
