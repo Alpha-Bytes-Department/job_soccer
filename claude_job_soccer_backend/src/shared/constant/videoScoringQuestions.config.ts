@@ -1624,6 +1624,138 @@ const SPECIFIC_TECHNICAL_COACH_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("Specific Technical Coach", SPECIFIC_TECHNICAL_COACH_QUESTIONS);
 
+// ─── Academy Director ────────────────────────────────────────────────────────
+
+const ACADEMY_DIRECTOR_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Academy Director",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess professional pathway, understanding of academy director mission, and leadership principles for long-term development.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your professional pathway and the experiences that prepared you to lead an academy?",
+        },
+        {
+          id: 2,
+          text: "How would you define the mission of an academy director within a modern football organization?",
+        },
+        {
+          id: 3,
+          text: "What leadership principles guide your decisions when managing a long-term development structure?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Development Expertise",
+      objective:
+        "Evaluate consistency of technical/tactical standards across age groups, session quality assessment, and player progression measurement.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you ensure technical and tactical standards are consistent across all age groups?",
+        },
+        {
+          id: 5,
+          text: "How do you evaluate whether training sessions meet development objectives?",
+        },
+        {
+          id: 6,
+          text: "What indicators do you use to measure real player progression?",
+        },
+      ],
+    },
+    {
+      name: "Academy Philosophy & Methodology",
+      objective:
+        "Understand unified development philosophy design, balancing consistency with coaching identity, and long-term development model principles.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you design and implement a unified development philosophy across the academy?",
+        },
+        {
+          id: 8,
+          text: "How do you maintain consistency while allowing coaches freedom to express their coaching identity?",
+        },
+        {
+          id: 9,
+          text: "What principles guide your long-term player development model?",
+        },
+      ],
+    },
+    {
+      name: "Staff Leadership & Coach Development",
+      objective:
+        "Assess coach recruitment, mentoring and evaluation processes, coaching quality monitoring, and professional growth support.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you recruit, mentor, and evaluate academy coaches?",
+        },
+        {
+          id: 11,
+          text: "What tools or methods do you use to monitor coaching quality?",
+        },
+        {
+          id: 12,
+          text: "How do you support coaches in their professional growth and licensing pathway?",
+        },
+      ],
+    },
+    {
+      name: "Player Pathway & Performance Model",
+      objective:
+        "Evaluate grassroots-to-elite progression structure, multi-domain development integration, and age-group transition management.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you structure player progression from grassroots to elite level?",
+        },
+        {
+          id: 14,
+          text: "How do you integrate technical, tactical, physical, and mental development into one system?",
+        },
+        {
+          id: 15,
+          text: "How do you manage transitions between age groups and competitive levels?",
+        },
+      ],
+    },
+    {
+      name: "Organizational Leadership & Impact",
+      objective:
+        "Measure cross-department collaboration, academy success metrics beyond results, and strategic prioritization ability.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "How do you collaborate with technical staff, performance departments, and club leadership?",
+        },
+        {
+          id: 17,
+          text: "What metrics do you use to evaluate academy success beyond match results?",
+        },
+        {
+          id: 18,
+          text: "If appointed today, what would be your priorities during your first 90 days?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Academy Director", ACADEMY_DIRECTOR_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
