@@ -7,8 +7,8 @@ enum TPosition {
   GK_COACH = "GK Coach",  //done
   MENTAL_COACH = "Mental Coach", //done
   VIDEO_ANALYST_COACH = "Video Analyst Coach", //done 
-  SPECIFIC_FORWARD_COACH = "Specific Forward Coach", //have
-  SPECIFIC_DEFENSIVE_COACH = "Specific Defensive Coach", //have 
+  SPECIFIC_FORWARD_COACH = "Specific Forward Coach", //done
+  SPECIFIC_DEFENSIVE_COACH = "Specific Defensive Coach", //done 
   SPECIFIC_TECHNICAL_COACH = "Specific Technical Coach", //have
   SCOUT = "Scout", //done
   TECHNICAL_DIRECTOR = "Technical Director", //done

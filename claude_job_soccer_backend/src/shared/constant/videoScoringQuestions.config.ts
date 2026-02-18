@@ -1492,6 +1492,138 @@ const SPECIFIC_DEFENSIVE_COACH_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("Specific Defensive Coach", SPECIFIC_DEFENSIVE_COACH_QUESTIONS);
 
+// ─── Specific Technical Coach ────────────────────────────────────────────────
+
+const SPECIFIC_TECHNICAL_COACH_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Specific Technical Coach",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess coaching pathway, role clarity within technical staff, and alignment with head coach philosophy.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your coaching background and pathway to becoming a technical coach?",
+        },
+        {
+          id: 2,
+          text: "How do you define the role and responsibilities of a technical coach within a technical staff?",
+        },
+        {
+          id: 3,
+          text: "How do you align your technical work with the head coach's playing philosophy and objectives?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate ability to analyze technical execution in match play, skill prioritization by position, and decision-making linked to technique.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you analyze player technical execution during match play?",
+        },
+        {
+          id: 5,
+          text: "How do you prioritize which technical skills to develop for different positions?",
+        },
+        {
+          id: 6,
+          text: "How do you evaluate decision-making quality linked to technical execution?",
+        },
+      ],
+    },
+    {
+      name: "Technical Methodology & Skill Development",
+      objective:
+        "Understand session structure for core skills, guiding methodology principles, and adaptation across age groups/positions/levels.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you structure technical training sessions to develop core skills (first touch, passing, receiving, ball mastery)?",
+        },
+        {
+          id: 8,
+          text: "What principles guide your technical coaching methodology?",
+        },
+        {
+          id: 9,
+          text: "How do you adapt technical work to different age groups, positions, and levels of play?",
+        },
+      ],
+    },
+    {
+      name: "Game Application & Communication",
+      objective:
+        "Assess connection of technical exercises to game situations, integration into collective training, and feedback communication.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you connect technical training exercises to game situations and decision-making?",
+        },
+        {
+          id: 11,
+          text: "How do you integrate individual technical development into collective team training?",
+        },
+        {
+          id: 12,
+          text: "How do you communicate technical feedback to players to ensure understanding and progression?",
+        },
+      ],
+    },
+    {
+      name: "Collaboration, Adaptability & Problem Solving",
+      objective:
+        "Evaluate cross-staff collaboration, adaptability when approaches fail, and adjustment for different learning speeds/limitations.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you collaborate with tactical, physical, and mental staff to ensure coherent player development?",
+        },
+        {
+          id: 14,
+          text: "Describe a situation where a technical training approach did not produce the expected results. What adjustments did you make?",
+        },
+        {
+          id: 15,
+          text: "How do you adapt your technical coaching when players have different learning speeds or limitations?",
+        },
+      ],
+    },
+    {
+      name: "Professionalism, Evaluation & Development",
+      objective:
+        "Measure technical improvement evaluation beyond match performance, professional resilience, and methodology evolution.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "What indicators do you use to evaluate technical improvement in players beyond match performance?",
+        },
+        {
+          id: 17,
+          text: "What has been the toughest professional challenge you have faced as a technical coach, and how did you overcome it?",
+        },
+        {
+          id: 18,
+          text: "How do you measure your effectiveness as a technical coach, and how has your methodology evolved over time?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Specific Technical Coach", SPECIFIC_TECHNICAL_COACH_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
