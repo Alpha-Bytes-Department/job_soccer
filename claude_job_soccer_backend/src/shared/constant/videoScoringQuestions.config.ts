@@ -1360,6 +1360,138 @@ const SPECIFIC_FORWARD_COACH_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("Specific Forward Coach", SPECIFIC_FORWARD_COACH_QUESTIONS);
 
+// ─── Specific Defensive Coach ────────────────────────────────────────────────
+
+const SPECIFIC_DEFENSIVE_COACH_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Specific Defensive Coach",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess pathway to becoming a defensive specific coach, role clarity within technical staff, and alignment with head coach vision.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your background and pathway to becoming a defensive specific coach?",
+        },
+        {
+          id: 2,
+          text: "How do you define the role and responsibilities of a defensive coach within a technical staff?",
+        },
+        {
+          id: 3,
+          text: "How do you align your defensive work with the head coach's overall tactical vision?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate ability to analyze opponent attacking patterns, teach defensive decision-making/positioning, and train trigger recognition.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you analyze opponent attacking patterns and threats?",
+        },
+        {
+          id: 5,
+          text: "How do you teach defensive decision-making and positioning?",
+        },
+        {
+          id: 6,
+          text: "How do you train players to recognize defensive triggers and cues?",
+        },
+      ],
+    },
+    {
+      name: "Defensive Methodology & Training Design",
+      objective:
+        "Understand session structure for individual/collective defensive behaviors, guiding principles, and age/level adaptation.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you structure defensive training sessions to develop individual and collective defensive behaviors?",
+        },
+        {
+          id: 8,
+          text: "What defensive principles guide your work (positioning, duels, compactness, pressing)?",
+        },
+        {
+          id: 9,
+          text: "How do you adapt your defensive methodology to different age groups and competitive levels?",
+        },
+      ],
+    },
+    {
+      name: "Defensive Game Model & Communication",
+      objective:
+        "Assess integration of defensive principles into playing model, phase-specific organization, and concept communication clarity.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you integrate defensive principles into the team's overall playing model?",
+        },
+        {
+          id: 11,
+          text: "How do you work on defensive organization in different phases (block, transition, set pieces)?",
+        },
+        {
+          id: 12,
+          text: "How do you communicate defensive concepts clearly to players to ensure understanding and execution?",
+        },
+      ],
+    },
+    {
+      name: "Leadership, Collaboration & Adaptability",
+      objective:
+        "Evaluate collaboration with other specific coaches, adaptability when plans fail, and adjustment to different player profiles.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you collaborate with other specific coaches to ensure tactical balance?",
+        },
+        {
+          id: 14,
+          text: "Describe a situation where a defensive plan did not work as expected. What adjustments did you make?",
+        },
+        {
+          id: 15,
+          text: "How do you adapt your defensive work when players have different profiles, strengths, or limitations?",
+        },
+      ],
+    },
+    {
+      name: "Professionalism, Evaluation & Development",
+      objective:
+        "Measure performance evaluation beyond goals conceded, professional resilience, and methodology evolution.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "What indicators do you use to evaluate defensive performance beyond goals conceded?",
+        },
+        {
+          id: 17,
+          text: "What has been the toughest professional challenge you have faced as a defensive coach, and how did you overcome it?",
+        },
+        {
+          id: 18,
+          text: "How do you measure your effectiveness as a defensive coach, and how has your methodology evolved over time?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Specific Defensive Coach", SPECIFIC_DEFENSIVE_COACH_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
