@@ -1096,6 +1096,270 @@ const SCOUT_QUESTIONS: IVideoScoringQuestionSet = {
 
 registerOnFieldStaffQuestions("Scout", SCOUT_QUESTIONS);
 
+// ─── Assistant Coach ─────────────────────────────────────────────────────────
+
+const ASSISTANT_COACH_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Assistant Coach",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Role & Support",
+      objective:
+        "Assess role clarity within technical staff, daily support of head coach vision, and adaptability when ideas differ.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "How do you define your role as an assistant coach within a technical staff?",
+        },
+        {
+          id: 2,
+          text: "How do you support the head coach's vision and game model on a daily basis?",
+        },
+        {
+          id: 3,
+          text: "How do you adapt when your personal ideas differ from the head coach's decisions?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate match performance analysis, tactical contribution in training, and in-game tactical correction support.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you analyze team performance during matches?",
+        },
+        {
+          id: 5,
+          text: "How do you contribute tactically during training sessions?",
+        },
+        {
+          id: 6,
+          text: "How do you support tactical corrections during games?",
+        },
+      ],
+    },
+    {
+      name: "Training & Methodology",
+      objective:
+        "Understand session planning and delivery role, tactical principle alignment, and individual player development contribution.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "What is your role in planning and delivering training sessions?",
+        },
+        {
+          id: 8,
+          text: "How do you ensure training content aligns with the team's tactical principles?",
+        },
+        {
+          id: 9,
+          text: "How do you contribute to individual player development during the week?",
+        },
+      ],
+    },
+    {
+      name: "Match Preparation & Analysis",
+      objective:
+        "Assess involvement in match preparation/opponent analysis, pre-match communication, and matchday role execution.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "What is your involvement in match preparation and opponent analysis?",
+        },
+        {
+          id: 11,
+          text: "How do you communicate key tactical information to players before a match?",
+        },
+        {
+          id: 12,
+          text: "What is your role during matches (bench management, feedback, observation)?",
+        },
+      ],
+    },
+    {
+      name: "Communication, Leadership & Collaboration",
+      objective:
+        "Evaluate player communication while respecting hierarchy, handling frustrated players, and cross-staff collaboration.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you communicate with players while respecting the head coach's authority?",
+        },
+        {
+          id: 14,
+          text: "How do you handle players who are frustrated with playing time or role?",
+        },
+        {
+          id: 15,
+          text: "How do you collaborate with other staff (fitness, goalkeeper, analyst, medical)?",
+        },
+      ],
+    },
+    {
+      name: "Professional Development & Evaluation",
+      objective:
+        "Measure self-evaluation ability, ongoing skill development, and contribution to team environment.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "How do you evaluate your own performance as an assistant coach?",
+        },
+        {
+          id: 17,
+          text: "What skills or experiences are you currently developing to grow in your coaching career?",
+        },
+        {
+          id: 18,
+          text: "How do you contribute to maintaining a positive and professional team environment?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Assistant Coach", ASSISTANT_COACH_QUESTIONS);
+
+// ─── Specific Forward Coach ──────────────────────────────────────────────────
+
+const SPECIFIC_FORWARD_COACH_QUESTIONS: IVideoScoringQuestionSet = {
+  role: CandidateRole.ON_FIELD_STAFF,
+  position: "Specific Forward Coach",
+  totalScore: 100,
+  categories: [
+    {
+      name: "Background & Role Definition",
+      objective:
+        "Assess pathway to becoming an attacking specific coach, role clarity within technical staff, and alignment with head coach vision.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 1,
+          text: "Can you describe your background and pathway to becoming an attacking specific coach?",
+        },
+        {
+          id: 2,
+          text: "How do you define the role and responsibilities of an attacking coach within a technical staff?",
+        },
+        {
+          id: 3,
+          text: "How do you align your attacking work with the head coach's overall tactical vision?",
+        },
+      ],
+    },
+    {
+      name: "Technical & Tactical Expertise",
+      objective:
+        "Evaluate ability to analyze attacking patterns, teach decision-making, and train space recognition and exploitation.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 4,
+          text: "How do you analyze attacking patterns and opponent defensive structures?",
+        },
+        {
+          id: 5,
+          text: "How do you teach decision-making in attacking situations?",
+        },
+        {
+          id: 6,
+          text: "How do you train players to recognize and exploit space in different attacking phases?",
+        },
+      ],
+    },
+    {
+      name: "Attacking Methodology & Training Design",
+      objective:
+        "Understand session structure for individual/collective attacking behaviors, guiding principles, and age/level adaptation.",
+      maxScore: 20,
+      questions: [
+        {
+          id: 7,
+          text: "How do you structure attacking training sessions to develop individual and collective attacking behaviors?",
+        },
+        {
+          id: 8,
+          text: "What attacking principles guide your work (positioning, movement, spacing, finishing, creativity)?",
+        },
+        {
+          id: 9,
+          text: "How do you adapt your attacking methodology to different age groups and competitive levels?",
+        },
+      ],
+    },
+    {
+      name: "Game Model Integration & Communication",
+      objective:
+        "Assess integration of attacking principles into playing model, concept communication clarity, and cross-phase coordination.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 10,
+          text: "How do you integrate attacking principles into the team's overall playing model?",
+        },
+        {
+          id: 11,
+          text: "How do you communicate attacking concepts clearly to players to ensure understanding and execution?",
+        },
+        {
+          id: 12,
+          text: "How do you coordinate attacking organization across phases (build-up, final third, transitions, set pieces)?",
+        },
+      ],
+    },
+    {
+      name: "Leadership, Collaboration & Adaptability",
+      objective:
+        "Evaluate collaboration with other specific coaches, adaptability when plans fail, and adjustment to different player profiles.",
+      maxScore: 15,
+      questions: [
+        {
+          id: 13,
+          text: "How do you collaborate with other specific coaches to ensure tactical balance?",
+        },
+        {
+          id: 14,
+          text: "Describe a situation where an attacking plan failed. What adjustments did you make?",
+        },
+        {
+          id: 15,
+          text: "How do you adapt your attacking work to different player profiles?",
+        },
+      ],
+    },
+    {
+      name: "Professionalism, Evaluation & Development",
+      objective:
+        "Measure performance evaluation beyond goals, professional resilience, and methodology evolution.",
+      maxScore: 10,
+      questions: [
+        {
+          id: 16,
+          text: "What indicators do you use to evaluate attacking performance beyond goals scored?",
+        },
+        {
+          id: 17,
+          text: "What has been the toughest professional challenge you have faced as an attacking coach, and how did you overcome it?",
+        },
+        {
+          id: 18,
+          text: "How do you measure your effectiveness as an attacking coach, and how has your methodology evolved over time?",
+        },
+      ],
+    },
+  ],
+};
+
+registerOnFieldStaffQuestions("Specific Forward Coach", SPECIFIC_FORWARD_COACH_QUESTIONS);
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**

@@ -3,18 +3,24 @@ import { countryList } from "../../../shared/constant/country.constant";
 
 enum TPosition {
   HEAD_COACH = "Head Coach", //done
-  ASSISTANT_COACH = "Assistant Coach",  
+  ASSISTANT_COACH = "Assistant Coach", // done 
   GK_COACH = "GK Coach",  //done
   MENTAL_COACH = "Mental Coach", //done
   VIDEO_ANALYST_COACH = "Video Analyst Coach", //done 
-  SPECIFIC_FORWARD_COACH = "Specific Forward Coach", 
-  SPECIFIC_DEFENSIVE_COACH = "Specific Defensive Coach", 
-  SPECIFIC_TECHNICAL_COACH = "Specific Technical Coach", 
+  SPECIFIC_FORWARD_COACH = "Specific Forward Coach", //have
+  SPECIFIC_DEFENSIVE_COACH = "Specific Defensive Coach", //have 
+  SPECIFIC_TECHNICAL_COACH = "Specific Technical Coach", //have
   SCOUT = "Scout", //done
   TECHNICAL_DIRECTOR = "Technical Director", //done
   ACADEMY_DIRECTOR = "Academy Director",
   DIRECTOR_OF_COACHING = "Director of Coaching", //done
 }
+ // Technical Coach 12
+ // Attacking Specific Coach 10
+ // Assistant Coach  6
+ // Defensive Specific Coach 11
+ // Strength & Conditioning Coach 
+
 
 export type TOnFieldStaffCan = {
   dateOfBirth: Date;
