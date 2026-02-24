@@ -1,6 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { execSync } from "child_process";
+import { execSync, exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 import os from "os";
 import { openai } from "./openai.config";
 import { CandidateRole } from "../../modules/user/user.interface";
@@ -55,11 +58,11 @@ function isFfmpegAvailable(): boolean {
 }
 
 /**
- * Extract audio from a video file using ffmpeg.
+ * Extract audio from a video file using ffmpeg (async — does not block event loop).
  * Converts to mp3 at 64kbps mono — produces ~0.5MB per minute.
  * Returns the path to the extracted audio file, or null if extraction fails.
  */
-function extractAudio(videoPath: string): string | null {
+async function extractAudio(videoPath: string): Promise<string | null> {
   if (!isFfmpegAvailable()) return null;
 
   try {
@@ -68,9 +71,9 @@ function extractAudio(videoPath: string): string | null {
     const audioPath = path.join(tempDir, audioFileName);
 
     // Extract audio: mono, 64kbps mp3 — optimized for speech
-    execSync(
+    await execAsync(
       `ffmpeg -i "${videoPath}" -vn -ac 1 -ab 64k -ar 16000 -f mp3 "${audioPath}" -y`,
-      { stdio: "ignore", timeout: 60000 } // 60s timeout
+      { timeout: 60000 } // 60s timeout
     );
 
     if (fs.existsSync(audioPath)) {
@@ -125,7 +128,7 @@ async function transcribeVideo(filePath: string): Promise<string> {
   const stats = fs.statSync(absolutePath);
   if (stats.size > MAX_WHISPER_FILE_SIZE || isFfmpegAvailable()) {
     // Always extract audio if ffmpeg is available (cheaper & faster upload)
-    tempAudioPath = extractAudio(absolutePath);
+    tempAudioPath = await extractAudio(absolutePath);
     if (tempAudioPath) {
       fileToTranscribe = tempAudioPath;
     } else if (stats.size > MAX_WHISPER_FILE_SIZE) {
@@ -167,14 +170,22 @@ async function transcribeAllVideos(filePaths: string[]): Promise<string> {
     filePaths.map((filePath) => transcribeVideo(filePath))
   );
 
-  const transcripts = results.filter((t) => t.trim().length > 0);
+  // Label each transcript with its video index and filename for GPT context
+  const labeledTranscripts: string[] = [];
+  for (let i = 0; i < results.length; i++) {
+    const transcript = results[i];
+    if (transcript.trim().length > 0) {
+      const videoLabel = `[Video ${i + 1}: ${path.basename(filePaths[i])}]`;
+      labeledTranscripts.push(`${videoLabel}\n${transcript}`);
+    }
+  }
 
-  if (transcripts.length === 0) {
+  if (labeledTranscripts.length === 0) {
     logger.warn("No transcripts generated from any video files");
     return "";
   }
 
-  return transcripts.join("\n\n---\n\n");
+  return labeledTranscripts.join("\n\n---\n\n");
 }
 
 // ─── Evaluation ──────────────────────────────────────────────────────────────

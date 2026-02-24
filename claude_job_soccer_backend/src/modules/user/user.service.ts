@@ -1328,17 +1328,11 @@ const addProfileVideo = async (payload: {
     newVideoData = processedVideos[0];
   }
 
-  // Delete old videos from filesystem
-  if (profile.videos && profile.videos.length > 0) {
-    profile.videos.forEach((video: any) => {
-      if (video.url) {
-        unlinkFileSync(video.url);
-      }
-    });
+  // Add the new video to the existing videos array
+  if (!profile.videos) {
+    profile.videos = [];
   }
-
-  // Replace all videos with the new video
-  profile.videos = [newVideoData];
+  profile.videos.push(newVideoData);
 
   // Re-score AI video if staff role (before save to avoid double write)
   if (

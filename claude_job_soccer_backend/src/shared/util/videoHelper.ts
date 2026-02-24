@@ -12,14 +12,18 @@ import {
 
 /**
  * Convert absolute file path to relative path for storage
+ * Normalizes backslashes to forward slashes for cross-platform compatibility
  * Example: /app/uploads/videos/file.mp4 -> videos/file.mp4
+ * Example: D:\uploads\videos\file.mp4 -> videos/file.mp4
  */
 const getRelativePath = (absolutePath: string): string => {
-  const videosIndex = absolutePath.indexOf('videos/');
+  // Normalize to forward slashes for consistent storage
+  const normalized = absolutePath.replace(/\\/g, '/');
+  const videosIndex = normalized.indexOf('videos/');
   if (videosIndex !== -1) {
-    return absolutePath.substring(videosIndex);
+    return normalized.substring(videosIndex);
   }
-  return absolutePath; // Fallback to original if 'videos/' not found
+  return normalized; // Fallback to normalized path if 'videos/' not found
 };
 
 /**
