@@ -1,25 +1,28 @@
 // redisClient.ts
-import Redis from 'ioredis';
-import config from '../../config';
+import Redis from "ioredis";
+import config from "../../config";
 
 // Create the Redis client instance
 const createRedisClient = (): Redis => {
   return new Redis({
-    host: config.redis.host,
+    host: "127.0.0.1",
     port: Number(config.redis.port),
     db: 0,
     connectTimeout: 5000,
     lazyConnect: true,
-    maxRetriesPerRequest: 3,
+
+    maxRetriesPerRequest: null,
+
     enableReadyCheck: true,
     retryStrategy: (times: number) => {
       console.warn(`Redis reconnection attempt ${times}`);
-      if (times > 3) {
-        console.error('Redis max reconnection attempts reached');
-        return null;
+      if (times > 10) {
+        console.error("Redis max reconnection attempts reached");
       }
+
       return Math.min(times * 1000, 5000);
     },
+
     keepAlive: 30000,
     noDelay: true,
   });
@@ -30,27 +33,27 @@ const redisClient = createRedisClient();
 // Event handlers
 let connectionStatus = false;
 /**
- * @param client 
+ * @param client
  * Sets up event handlers for the Redis client to monitor connection status.
  */
 const setupEventHandlers = (client: Redis): void => {
-  client.on('error', (err: Error) => {
-    console.error('Redis Client Error:', err);
+  client.on("error", (err: Error) => {
+    console.error("Redis Client Error:", err);
     connectionStatus = false;
   });
 
-  client.on('connect', () => {
-    console.log('Redis client connected');
+  client.on("connect", () => {
+    console.log("Redis client connected");
     connectionStatus = true;
   });
 
-  client.on('close', () => {
-    console.log('Redis client disconnected');
+  client.on("close", () => {
+    console.log("Redis client disconnected");
     connectionStatus = false;
   });
 
-  client.on('ready', () => {
-    console.log('Redis client ready');
+  client.on("ready", () => {
+    console.log("Redis client ready");
     connectionStatus = true;
   });
 };
@@ -67,9 +70,9 @@ const connect = async (): Promise<void> => {
   try {
     await redisClient.connect();
     connectionStatus = true;
-    console.log('Connected to Redis');
+    console.log("Connected to Redis");
   } catch (error) {
-    console.error('Failed to connect to Redis:', error);
+    console.error("Failed to connect to Redis:", error);
     throw error;
   }
 };
@@ -94,15 +97,19 @@ const healthCheck = async (): Promise<boolean> => {
   try {
     await ensureConnected();
     const result = await redisClient.ping();
-    return result === 'PONG';
+    return result === "PONG";
   } catch (error) {
-    console.error('Redis health check failed:', error);
+    console.error("Redis health check failed:", error);
     return false;
   }
 };
 
 // Set key with expiration
-const set = async (key: string, value: string, expiryInSec: number = 3600): Promise<void> => {
+const set = async (
+  key: string,
+  value: string,
+  expiryInSec: number = 3600,
+): Promise<void> => {
   try {
     await ensureConnected();
     await redisClient.setex(key, expiryInSec, value);
@@ -164,12 +171,12 @@ const redisOperations = {
 };
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await disconnect();
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.on("SIGTERM", async () => {
   await disconnect();
   process.exit(0);
 });
