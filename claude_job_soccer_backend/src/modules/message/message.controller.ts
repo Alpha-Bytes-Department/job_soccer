@@ -15,7 +15,7 @@ const createMessage = catchAsync(async (req: Request, res: Response) => {
   // Handle uploaded image file
   if (req.files && "image" in req.files && req.files.image[0]) {
     const imageFile = req.files.image[0];
-    mediaUrl = imageFile.path.replace('/app/uploads', '').replace(/\\/g, '/');
+    mediaUrl = imageFile.path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '').replace(/\\/g, '/');
     messageType = MessageType.IMAGE;
   }
 

@@ -37,7 +37,7 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
 
   let image = null;
   if (req.files && "image" in req.files && req.files.image[0]) {
-    image = req.files.image[0].path.replace('/app/uploads', '');
+    image = req.files.image[0].path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '');
 
      
   }
@@ -113,7 +113,7 @@ const addUserProfile = catchAsync(async (req: Request, res: Response) => {
     // Extract profile image if present
     let profileImage = null;
     if (req.files && "image" in req.files && req.files.image[0]) {
-      profileImage = req.files.image[0].path.replace('/app/uploads', '');
+      profileImage = req.files.image[0].path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '');
     }
     if(profileImage === null){
      throw new AppError(400, "Profile image is required");
@@ -169,13 +169,13 @@ const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
     // Extract profile image if present
     let profileImage = null;
     if (req.files && "image" in req.files && req.files.image[0]) {
-      profileImage = req.files.image[0].path.replace('/app/uploads', '');
+      profileImage = req.files.image[0].path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '');
     }
     
     // Extract banner image if present
     let bannerImage = null;
     if (req.files && "banner" in req.files && req.files.banner[0]) {
-      bannerImage = req.files.banner[0].path.replace('/app/uploads', '');
+      bannerImage = req.files.banner[0].path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '');
     }
     
     // Extract video files if present
