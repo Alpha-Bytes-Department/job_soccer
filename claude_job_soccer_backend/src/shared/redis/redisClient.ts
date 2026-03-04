@@ -32,6 +32,8 @@ const redisClient = createRedisClient();
 
 // Event handlers
 let connectionStatus = false;
+let connectingPromise: Promise<void> | null = null; // ✅ prevents race condition on concurrent connect calls
+
 /**
  * @param client
  * Sets up event handlers for the Redis client to monitor connection status.
@@ -40,6 +42,7 @@ const setupEventHandlers = (client: Redis): void => {
   client.on("error", (err: Error) => {
     console.error("Redis Client Error:", err);
     connectionStatus = false;
+    connectingPromise = null; // ✅ reset lock on error
   });
 
   client.on("connect", () => {
@@ -50,6 +53,7 @@ const setupEventHandlers = (client: Redis): void => {
   client.on("close", () => {
     console.log("Redis client disconnected");
     connectionStatus = false;
+    connectingPromise = null; // ✅ reset lock on close
   });
 
   client.on("ready", () => {
@@ -67,14 +71,23 @@ const isConnected = (): boolean => connectionStatus;
 const connect = async (): Promise<void> => {
   if (isConnected()) return;
 
-  try {
-    await redisClient.connect();
-    connectionStatus = true;
-    console.log("Connected to Redis");
-  } catch (error) {
-    console.error("Failed to connect to Redis:", error);
-    throw error;
-  }
+  // ✅ if already connecting, wait for that promise instead of calling connect() again
+  if (connectingPromise) return connectingPromise;
+
+  connectingPromise = (async () => {
+    try {
+      await redisClient.connect();
+      connectionStatus = true;
+      console.log("Connected to Redis");
+    } catch (error) {
+      console.error("Failed to connect to Redis:", error);
+      throw error;
+    } finally {
+      connectingPromise = null; // ✅ always release lock
+    }
+  })();
+
+  return connectingPromise;
 };
 
 // Ensure connected
