@@ -64,6 +64,8 @@ import { CandidateEducationService } from "../candidateEducation/candidateEducat
 import { CandidateExperienceService } from "../candidateExperience/candidateExperience.service";
 import { CandidateLicensesAndCertificationService } from "../candidateLicensesAndCertification/candidateLicensesAndCertification.service";
 import { AdminVerificationService } from "../adminVerification/adminVerification.service";
+import redisOperations from "../../shared/redis/redisClient";
+import { Subscription } from "../subscription/subscription.model";
 
 const getAllUsers = async (query: Record<string, unknown>) => {
   const userQuery = new QueryBuilder(User.find(), query)
@@ -209,6 +211,11 @@ const updateUserRole = async (id: string, role: "USER" | "ADMIN") => {
 };
 
 const getMe = async (userId: string): Promise<any> => {
+  // Check Redis cache first
+  const cacheKey = `user:${userId}:me`;
+  const cached = await redisOperations.get(cacheKey);
+  if (cached) return JSON.parse(cached);
+
   // Query the database using lean with virtuals enabled.
   const user = await User.findById(userId).lean({
     virtuals: true,
@@ -220,7 +227,6 @@ const getMe = async (userId: string): Promise<any> => {
   // Get subscription details
   let subscriptionInfo = null;
   if (user.activeSubscriptionId) {
-    const { Subscription } = await import("../subscription/subscription.model");
     const subscription = await Subscription.findById(
       user.activeSubscriptionId
     ).lean();
@@ -325,7 +331,7 @@ const getMe = async (userId: string): Promise<any> => {
   // aiProfileScore is computed by AI during profile creation/update
   user.aiProfileScore = user?.aiProfileScore ?? 0;
 
-  return {
+  const result = {
     ...user,
     profile,
     educations,
@@ -334,6 +340,11 @@ const getMe = async (userId: string): Promise<any> => {
     subscription: subscriptionInfo,
     adminVerificationStatus: adminVerificationStatus,
   };
+
+  // Cache the result for 5 minutes
+  await redisOperations.set(cacheKey, JSON.stringify(result), 300);
+
+  return result;
 };
 
 const addUserProfile = async (payload: {
