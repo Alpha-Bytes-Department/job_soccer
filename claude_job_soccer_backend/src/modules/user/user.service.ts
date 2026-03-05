@@ -176,6 +176,9 @@ const updateUser = async (id: string, updateData: any) => {
   if (!updatedUser) {
     throw new AppError(StatusCodes.NOT_FOUND, "User update failed");
   }
+
+  await redisOperations.del(`user:${id}:me`); // Invalidate cache for this user
+
   return updatedUser;
 };
 const updateUserActivationStatus = async (
@@ -194,7 +197,9 @@ const updateUserActivationStatus = async (
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
-
+  
+  await redisOperations.del(`user:${id}:me`); // Invalidate cache for this user
+  
   return user;
 };
 const updateUserRole = async (id: string, role: "USER" | "ADMIN") => {
@@ -207,6 +212,8 @@ const updateUserRole = async (id: string, role: "USER" | "ADMIN") => {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
 
+  await redisOperations.del(`user:${id}:me`); // Invalidate cache for this user
+  
   return user;
 };
 
