@@ -6,6 +6,8 @@ import path from "path";
 import sharp from "sharp";
 import newFileName from "../util/filenameGenerator";
 import AppError from "../../errors/AppError";
+import { logger } from "../logger/logger";
+
 const fileUploadHandler = (req: Request, res: Response, next: NextFunction) => {
   // Create upload folder
   const baseUploadDir = path.join(process.cwd(), "uploads");
@@ -196,6 +198,7 @@ const fileUploadHandler = (req: Request, res: Response, next: NextFunction) => {
           })
         );
       } catch (error) {
+        logger.error("Error processing image files", { error });
         return next(
           new AppError(
             StatusCodes.INTERNAL_SERVER_ERROR,

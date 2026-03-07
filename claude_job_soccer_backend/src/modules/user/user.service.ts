@@ -165,7 +165,7 @@ const updateUser = async (id: string, updateData: any) => {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
 
-  if (updateData.image && user.profileImage) {
+  if (updateData.profileImage && user.profileImage) {
     unlinkFileSync(user.profileImage);
   }
 
@@ -177,7 +177,7 @@ const updateUser = async (id: string, updateData: any) => {
     throw new AppError(StatusCodes.NOT_FOUND, "User update failed");
   }
 
-  await redisOperations.del(`user:${id}:me`); // Invalidate cache for this user
+  await redisOperations.del(`user:${id}:me`);
 
   return updatedUser;
 };

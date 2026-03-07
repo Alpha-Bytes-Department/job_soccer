@@ -33,22 +33,17 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const updateUser = catchAsync(async (req: Request, res: Response) => {
-  const data = req.body.data ? JSON.parse(req.body.data) : null;
+  const data = req.body.data ? JSON.parse(req.body.data) : {};
 
   let image = null;
   if (req.files && "image" in req.files && req.files.image[0]) {
-    image = req.files.image[0].path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '');
-
-     
+    image = `/images/${req.files.image[0].filename}`;
   }
 
   const userData = {
     ...data,
-    image: image,
+    profileImage: image ?? undefined, //? If image is null, we don't want to set it to null in the database, we want to ignore it
   };
-  if (userData.image === null) {
-    delete userData.image;
-  }
 
   const user = await UserServices.updateUser(req.params.id, userData);
   sendResponse(res, {
@@ -113,7 +108,7 @@ const addUserProfile = catchAsync(async (req: Request, res: Response) => {
     // Extract profile image if present
     let profileImage = null;
     if (req.files && "image" in req.files && req.files.image[0]) {
-      profileImage = req.files.image[0].path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '');
+      profileImage = `/images/${req.files.image[0].filename}`;
     }
     if(profileImage === null){
      throw new AppError(400, "Profile image is required");
@@ -169,13 +164,13 @@ const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
     // Extract profile image if present
     let profileImage = null;
     if (req.files && "image" in req.files && req.files.image[0]) {
-      profileImage = req.files.image[0].path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '');
+      profileImage = `/images/${req.files.image[0].filename}`;
     }
     
     // Extract banner image if present
     let bannerImage = null;
     if (req.files && "banner" in req.files && req.files.banner[0]) {
-      bannerImage = req.files.banner[0].path.replace('/var/www/backend/claude_job_soccer_backend/uploads', '');
+      bannerImage = `/images/${req.files.banner[0].filename}`;
     }
     
     // Extract video files if present
