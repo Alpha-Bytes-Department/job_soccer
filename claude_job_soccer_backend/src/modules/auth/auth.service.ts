@@ -549,15 +549,28 @@ const changePasswordToDB = async (
 };
 
 const deleteAccountToDB = async (user: JwtPayload) => {
-  const result = await User.findByIdAndUpdate(
-    user.id,
-    { isDeleted: true },
-    { new: true }
-  );
-  if (!result) {
-    throw new AppError(StatusCodes.NOT_FOUND, "No User found");
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const result = await User.findByIdAndUpdate(
+        user.id,
+        { isDeleted: true },
+        { new: true, session },
+      );
+
+      if (!result) {
+        throw new AppError(StatusCodes.NOT_FOUND, 'No User found');
+      }
+
+      if (result.email) {
+        await Auth.deleteMany({ email: result.email }, { session });
+      }
+    });
+
+    return null;
+  } finally {
+    await session.endSession();
   }
-  return null;
 };
 
 //resend otp
