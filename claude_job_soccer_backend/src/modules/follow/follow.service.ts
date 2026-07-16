@@ -26,10 +26,6 @@ const followEmployer = async (
     throw new AppError(StatusCodes.NOT_FOUND, "Employer not found");
   }
 
-  if (employer.userType !== "employer") {
-    throw new AppError(StatusCodes.BAD_REQUEST, "You can only follow employers");
-  }
-
   // Check if already following
   const existingFollow = await Follow.findOne({
     followerId: new Types.ObjectId(followerId),
