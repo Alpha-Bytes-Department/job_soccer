@@ -20,7 +20,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/", 
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(addEducationSchema),
   CandidateEducationController.addEducation
 );
@@ -43,7 +43,7 @@ router.post(
  */
 router.get(
   "/user/:userId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(getEducationsByUserSchema),
   CandidateEducationController.getAllEducationsByUser
 );
@@ -55,7 +55,7 @@ router.get(
  */
 router.get(
   "/:educationId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(getEducationByIdSchema),
   CandidateEducationController.getEducationById
 );
@@ -67,7 +67,7 @@ router.get(
  */
 router.patch(
   "/:educationId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(updateEducationSchema),
   CandidateEducationController.updateEducation
 );
@@ -79,7 +79,7 @@ router.patch(
  */
 router.delete(
   "/:educationId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(removeEducationSchema),
   CandidateEducationController.removeEducation
 );

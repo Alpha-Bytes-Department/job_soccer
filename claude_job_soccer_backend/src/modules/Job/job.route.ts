@@ -103,13 +103,13 @@ router.get("/expiring", JobController.getExpiringJobs);
  * Query params:
  *   - status: "active" | "closed" | "draft" | "expired" (optional)
  */
-router.get("/my/jobs", auth(UserType.EMPLOYER), JobController.getMyJobs);
+router.get("/my/jobs", auth(), JobController.getMyJobs);
 
 /**
  * GET /api/v1/job/my/stats
  * Get job statistics for the authenticated user
  */
-router.get("/my/stats", auth(UserType.EMPLOYER), JobController.getMyJobStats);
+router.get("/my/stats", auth(), JobController.getMyJobStats);
 
 /**
  * GET /api/v1/job
@@ -146,7 +146,7 @@ router.get("/:id", optionalAuth, JobController.getJobById);
  */
 router.post(
   "/",
-  auth(UserType.EMPLOYER),
+  auth(),
   validateRequest(JobValidation.createJobDto),
   JobController.createJob
 );
@@ -167,7 +167,7 @@ router.post("/by-categories",  JobController.getJobsByCategories);
  */
 router.patch(
   "/:id",
-  auth(UserType.EMPLOYER),
+  auth(),
   validateRequest(JobValidation.updateJobDto),
   JobController.updateJob
 );
@@ -177,13 +177,13 @@ router.patch(
  * /:id
  * Delete a job (soft delete - owner only)
  */
-router.delete("/:id", auth(UserType.EMPLOYER), JobController.deleteJob);
+router.delete("/:id", auth(), JobController.deleteJob);
 
 /**
  * POST /api/v1/job/:id/apply
  * Increment application count for a job (when someone applies)
  */
-router.post("/:id/apply", auth(UserType.CANDIDATE), JobController.incrementApplicationCount);
+router.post("/:id/apply", auth(), JobController.incrementApplicationCount);
 
 /**
  * ADMIN ROUTES

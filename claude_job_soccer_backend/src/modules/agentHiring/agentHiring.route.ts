@@ -18,7 +18,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(createAgentHiringSchema),
   AgentHiringController.createAgentHiring
 );
@@ -31,7 +31,7 @@ router.post(
  */
 router.get(
   "/my-hirings",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   AgentHiringController.getMyHirings
 );
 
@@ -65,7 +65,7 @@ router.get(
  */
 router.get(
   "/check-active/:agentUserId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   AgentHiringController.checkActiveHiring
 );
 
@@ -76,7 +76,7 @@ router.get(
  */
 router.get(
   "/:hiringId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(getHiringByIdSchema),
   AgentHiringController.getHiringById
 );
@@ -89,7 +89,7 @@ router.get(
  */
 router.patch(
   "/:hiringId/status",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(updateHiringStatusSchema),
   AgentHiringController.updateHiringStatus
 );

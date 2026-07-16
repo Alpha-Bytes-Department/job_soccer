@@ -20,7 +20,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/", 
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(addLicenseAndCertificationSchema),
   CandidateLicensesAndCertificationController.addLicenseAndCertification
 );
@@ -43,7 +43,7 @@ router.post(
  */
 router.get(
   "/user/:userId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(getLicensesAndCertificationsByUserSchema),
   CandidateLicensesAndCertificationController.getAllLicensesAndCertificationsByUser
 );
@@ -55,7 +55,7 @@ router.get(
  */
 router.get(
   "/:licenseId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(getLicenseAndCertificationByIdSchema),
   CandidateLicensesAndCertificationController.getLicenseAndCertificationById
 );
@@ -67,7 +67,7 @@ router.get(
  */
 router.patch(
   "/:licenseId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(updateLicenseAndCertificationSchema),
   CandidateLicensesAndCertificationController.updateLicenseAndCertification
 );
@@ -79,7 +79,7 @@ router.patch(
  */
 router.delete(
   "/:licenseId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(removeLicenseAndCertificationSchema),
   CandidateLicensesAndCertificationController.removeLicenseAndCertification
 );

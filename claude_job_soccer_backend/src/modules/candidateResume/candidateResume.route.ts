@@ -21,7 +21,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   fileUploadHandler,
   validateRequest(addResumeSchema),
   CandidateResumeController.addResume
@@ -56,7 +56,7 @@ router.post(
  */
 router.get(
   "/user/:userId/check",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   CandidateResumeController.checkHasResume
 );
 
@@ -67,7 +67,7 @@ router.get(
  */
 router.get(
   "/user/:userId/active",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(getResumesSchema),
   CandidateResumeController.getActiveResume
 );
@@ -79,7 +79,7 @@ router.get(
  */
 router.get(
   "/user/:userId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(getResumesSchema),
   CandidateResumeController.getAllResumes
 );
@@ -103,7 +103,7 @@ router.patch(
  */
 router.get(
   "/:resumeId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(getResumeByIdSchema),
   CandidateResumeController.getResumeById
 );

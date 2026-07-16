@@ -20,7 +20,7 @@ const router = express.Router();
  */
 router.post(
   "/apply",
-  auth(UserType.CANDIDATE),
+  auth(),
   validateRequest(JobApplyValidation.applyToJobDto),
   JobApplyController.applyToJob
 );
@@ -34,7 +34,7 @@ router.post(
  */
 router.get(
   "/my-applications",
-  auth(UserType.CANDIDATE),
+  auth(),
   JobApplyController.getCandidateApplications
 );
 
@@ -44,7 +44,7 @@ router.get(
  */
 router.delete(
   "/:id",
-  auth(UserType.CANDIDATE),
+  auth(),
   JobApplyController.deleteApplication
 );
 
@@ -88,7 +88,7 @@ router.delete(
  */
 router.get(
   "/job/:jobId",
-  auth(UserType.EMPLOYER),
+  auth(),
   validateRequest(JobApplyValidation.getApplicationsByJobDto),
   JobApplyController.getApplicationsByJob
 );
@@ -104,7 +104,7 @@ router.get(
  */
 router.get(
   "/applicant/:candidateId",
-  auth(UserType.EMPLOYER),
+  auth(),
   JobApplyController.getApplicantProfile
 );
 

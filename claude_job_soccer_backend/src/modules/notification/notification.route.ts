@@ -32,7 +32,7 @@ router.post(
  */
 router.get(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   NotificationController.getNotifications
 );
 
@@ -43,7 +43,7 @@ router.get(
  */
 router.get(
   "/unread-count",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   NotificationController.getUnreadCount
 );
 
@@ -54,7 +54,7 @@ router.get(
  */
 router.patch(
   "/read-all",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   NotificationController.markAllAsRead
 );
 
@@ -65,7 +65,7 @@ router.patch(
  */
 router.delete(
   "/all",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   NotificationController.deleteAllNotifications
 );
 
@@ -76,7 +76,7 @@ router.delete(
  */
 router.get(
   "/:notificationId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(getNotificationByIdSchema),
   NotificationController.getNotificationById
 );
@@ -88,7 +88,7 @@ router.get(
  */
 router.patch(
   "/:notificationId/read",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(markAsReadSchema),
   NotificationController.markAsRead
 );
@@ -100,7 +100,7 @@ router.patch(
  */
 router.delete(
   "/:notificationId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(deleteNotificationSchema),
   NotificationController.deleteNotification
 );

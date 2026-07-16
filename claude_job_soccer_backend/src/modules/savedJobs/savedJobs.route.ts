@@ -14,7 +14,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(addSavedJobSchema),
   SavedJobController.addSavedJob
 );
@@ -27,7 +27,7 @@ router.post(
  */
 router.get(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   SavedJobController.getSavedJobs
 );
 
@@ -38,7 +38,7 @@ router.get(
  */
 router.get(
   "/count",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   SavedJobController.getSavedJobsCount
 );
 
@@ -49,7 +49,7 @@ router.get(
  */
 router.get(
   "/check/:jobId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   SavedJobController.checkIfJobSaved
 );
 
@@ -60,7 +60,7 @@ router.get(
  */
 router.delete(
   "/:jobId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(removeSavedJobSchema),
   SavedJobController.removeSavedJob
 );

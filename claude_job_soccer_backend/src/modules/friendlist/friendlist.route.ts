@@ -18,7 +18,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(sendFriendRequestSchema),
   FriendListController.sendFriendRequest
 );
@@ -31,7 +31,7 @@ router.post(
  */
 router.get(
   "/friends",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FriendListController.getFriends
 );
 
@@ -42,7 +42,7 @@ router.get(
  */
 router.get(
   "/friends/count",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FriendListController.getFriendsCount
 );
 
@@ -53,7 +53,7 @@ router.get(
  */
 router.delete(
   "/friends/:friendId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(removeFriendSchema),
   FriendListController.removeFriend
 );
@@ -66,7 +66,7 @@ router.delete(
  */
 router.get(
   "/received",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FriendListController.getReceivedFriendRequests
 );
 
@@ -77,7 +77,7 @@ router.get(
  */
 router.get(
   "/received/count",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FriendListController.getPendingRequestsCount
 );
 
@@ -89,7 +89,7 @@ router.get(
  */
 router.get(
   "/sent",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FriendListController.getSentFriendRequests
 );
 
@@ -100,7 +100,7 @@ router.get(
  */
 router.patch(
   "/:requestId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(respondToFriendRequestSchema),
   FriendListController.respondToFriendRequest
 );
@@ -112,7 +112,7 @@ router.patch(
  */
 router.delete(
   "/:requestId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FriendListController.cancelFriendRequest
 );
 
@@ -123,7 +123,7 @@ router.delete(
  */
 router.get(
   "/check/:userId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FriendListController.checkFriendship
 );
 

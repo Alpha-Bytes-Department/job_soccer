@@ -18,7 +18,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(createAgentRatingSchema),
   AgentRatingController.createAgentRating
 );
@@ -32,7 +32,7 @@ router.post(
  */
 router.get(
   "/my-ratings",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   AgentRatingController.getMyRatings
 );
 //! not now
@@ -65,7 +65,7 @@ router.get(
  */
 router.get(
   "/check/:agentUserId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(checkUserRatedAgentSchema),
   AgentRatingController.checkUserRatedAgent
 );

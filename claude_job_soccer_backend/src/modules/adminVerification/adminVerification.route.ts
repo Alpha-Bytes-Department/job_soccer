@@ -19,7 +19,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/request",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(requestVerificationSchema),
   AdminVerificationController.requestVerification
 );
@@ -31,7 +31,7 @@ router.post(
  */
 router.get(
   "/my-status",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   AdminVerificationController.getMyVerificationStatus
 );
 

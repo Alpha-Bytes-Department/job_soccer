@@ -21,7 +21,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/", 
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(addExperienceSchema),
   CandidateExperienceController.addExperience
 );
@@ -44,7 +44,7 @@ router.post(
  */
 router.get(
   "/user/:userId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(getExperiencesByUserSchema),
   CandidateExperienceController.getAllExperiencesByUser
 );
@@ -56,7 +56,7 @@ router.get(
  */
 router.get(
   "/profile/:profileId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(getExperiencesByProfileIdSchema),
   CandidateExperienceController.getExperiencesByProfileId
 );
@@ -68,7 +68,7 @@ router.get(
  */
 router.get(
   "/:experienceId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER, UserType.ADMIN),
+  auth(),
   validateRequest(getExperienceByIdSchema),
   CandidateExperienceController.getExperienceById
 );
@@ -80,7 +80,7 @@ router.get(
  */
 router.patch(
   "/:experienceId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(updateExperienceSchema),
   CandidateExperienceController.updateExperience
 );
@@ -92,7 +92,7 @@ router.patch(
  */
 router.delete(
   "/:experienceId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(removeExperienceSchema),
   CandidateExperienceController.removeExperience
 );

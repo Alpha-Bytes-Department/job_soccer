@@ -17,7 +17,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(shortlistCandidateSchema),
   CandidateShortListController.shortlistCandidate
 );
@@ -30,7 +30,7 @@ router.post(
  */
 router.get(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   CandidateShortListController.getShortlistedCandidates
 );
 
@@ -41,7 +41,7 @@ router.get(
  */
 router.get(
   "/count",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   CandidateShortListController.getShortlistedCandidatesCount
 );
 
@@ -52,7 +52,7 @@ router.get(
  */
 router.get(
   "/check/:candidateId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   CandidateShortListController.checkIfCandidateShortlisted
 );
 
@@ -64,7 +64,7 @@ router.get(
  */
 router.get(
   "/shortlisted-by/:candidateId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   CandidateShortListController.getCandidateShortlistedBy
 );
 
@@ -75,7 +75,7 @@ router.get(
  */
 router.get(
   "/shortlisted-by/:candidateId/count",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   CandidateShortListController.getCandidateShortlistedByCount
 );
 
@@ -86,7 +86,7 @@ router.get(
  */
 router.delete(
   "/:candidateId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(removeShortlistedCandidateSchema),
   CandidateShortListController.removeShortlistedCandidate
 );

@@ -45,7 +45,7 @@ router.post(
 // Change password route (requires authentication)
 router.post(
   "/change-password",
-  auth(UserType.ADMIN, UserType.EMPLOYER, UserType.CANDIDATE),
+  auth(),
   validateRequest(AuthValidation.changePasswordDto),
   AuthController.changePassword
 );
@@ -60,7 +60,7 @@ router.post(
 // Delete account route (requires authentication)
 router.delete(
   "/delete-account",
-  auth(UserType.ADMIN, UserType.EMPLOYER, UserType.CANDIDATE),
+  auth(),
   AuthController.deleteAccount
 );
 
