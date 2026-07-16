@@ -12,6 +12,7 @@ import { Types } from "mongoose";
 import { CandidateShortList } from "../candidateShortList/candidateShortList.model";
 import { FriendList } from "../friendlist/friendlist.model";
 import { getCandidateModel } from "../../shared/util/getCandidateModel";
+import { Follow } from "../follow/follow.model";
 
 /**
  * Search candidates by name, category, and country
@@ -294,6 +295,19 @@ const getCandidateById = async (id: string, userId?: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "Candidate profile not found");
   }
 
+   // Check if authenticated user is following this employer and get follower count
+  const [isFollowing, followerCount] = await Promise.all([
+    userId
+      ? Follow.exists({
+          followerId: new Types.ObjectId(userId),
+          followingId: new Types.ObjectId(id),
+        }).then((result) => !!result)
+      : Promise.resolve(false),
+    Follow.countDocuments({
+      followingId: new Types.ObjectId(id),
+    }),
+  ]);
+
   // Get profile details
   const candidateModel = getCandidateModel(user.role as CandidateRole);
   const profile = await candidateModel.findById(user.profileId).lean();
@@ -360,6 +374,8 @@ const getCandidateById = async (id: string, userId?: string) => {
       isShortlisted,
       friendRequestStatus,
     }),
+    isFollowing,
+    followerCount,
   };
 };
 
