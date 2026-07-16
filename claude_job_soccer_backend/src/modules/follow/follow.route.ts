@@ -3,7 +3,6 @@ import { FollowController } from "./follow.controller";
 import auth from "../../shared/middlewares/auth";
 import validateRequest from "../../shared/middlewares/validateRequest";
 import { followEmployerSchema, unfollowEmployerSchema } from "./follow.dto";
-import { UserType } from "../user/user.interface";
 
 const router: Router = express.Router();
 
@@ -14,7 +13,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(followEmployerSchema),
   FollowController.followEmployer
 );
@@ -27,7 +26,7 @@ router.post(
  */
 router.get(
   "/following",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FollowController.getFollowing
 );
 
@@ -38,7 +37,7 @@ router.get(
  */
 router.get(
   "/following/count",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FollowController.getFollowingCount
 );
 
@@ -49,7 +48,7 @@ router.get(
  */
 router.get(
   "/check/:employerId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   FollowController.checkIfFollowing
 );
 
@@ -81,7 +80,7 @@ router.get(
  */
 router.delete(
   "/:employerId",
-  auth(UserType.CANDIDATE, UserType.EMPLOYER),
+  auth(),
   validateRequest(unfollowEmployerSchema),
   FollowController.unfollowEmployer
 );
