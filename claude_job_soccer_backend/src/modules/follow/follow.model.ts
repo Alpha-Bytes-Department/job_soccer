@@ -11,7 +11,6 @@ const followSchema = new Schema<TFollow>(
     },
     followerType: {
       type: String,
-      enum: ["candidate", "employer"],
       required: true,
     },
     followerRole: {
