@@ -25,7 +25,7 @@ const createOrGetChatSchema = z.object({
  */
 router.post(
   "/create-or-get",
-  auth("candidate", "employer"),
+  auth(),
   validateRequest(createOrGetChatSchema),
   ChatController.createOrGetChat
 );
@@ -38,7 +38,7 @@ router.post(
  */
 router.get(
   "/my-chats",
-  auth("candidate", "employer"),
+  auth(),
   ChatController.getUserChats
 );
 
@@ -50,7 +50,7 @@ router.get(
  */
 router.get(
   "/blocked",
-  auth("candidate", "employer"),
+  auth(),
   ChatController.getBlockedChats
 );
 
@@ -64,7 +64,7 @@ router.get(
  */
 router.get(
   "/:chatId",
-  auth("candidate", "employer"),
+  auth(),
   ChatController.getChatById
 );
 
@@ -78,7 +78,7 @@ router.get(
  */
 router.post(
   "/:chatId/block",
-  auth("candidate", "employer"),
+  auth(),
   ChatController.blockUser
 );
 
@@ -92,7 +92,7 @@ router.post(
  */
 router.post(
   "/:chatId/unblock",
-  auth("candidate", "employer"),
+  auth(),
   ChatController.unblockUser
 );
 
@@ -106,7 +106,7 @@ router.post(
  */
 router.delete(
   "/:chatId",
-  auth("candidate", "employer"),
+  auth(),
   ChatController.deleteChat
 );
 
