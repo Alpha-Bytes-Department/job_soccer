@@ -43,7 +43,7 @@ const searchMessagesSchema = z.object({
  */
 router.post(
   "/send",
-  auth("candidate", "employer"),
+  auth(),
   fileUploadHandler,
   validateRequest(createMessageSchema),
   MessageController.createMessage
@@ -62,7 +62,7 @@ router.post(
  */
 router.get(
   "/chat/:chatId",
-  auth("candidate", "employer"),
+  auth(),
   MessageController.getMessagesByChatId
 );
 
@@ -76,7 +76,7 @@ router.get(
  */
 router.post(
   "/chat/:chatId/mark-read",
-  auth("candidate", "employer"),
+  auth(),
   MessageController.markMessagesAsRead
 );
 
@@ -88,7 +88,7 @@ router.post(
  */
 router.get(
   "/unread-count",
-  auth("candidate", "employer"),
+  auth(),
   MessageController.getUnreadMessageCount
 );
 
@@ -104,7 +104,7 @@ router.get(
  */
 router.get(
   "/chat/:chatId/search",
-  auth("candidate", "employer"),
+  auth(),
   validateRequest(searchMessagesSchema),
   MessageController.searchMessages
 );
@@ -119,7 +119,7 @@ router.get(
  */
 router.delete(
   "/:messageId",
-  auth("candidate", "employer"),
+  auth(),
   MessageController.deleteMessage
 );
 
